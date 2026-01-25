@@ -1,0 +1,123 @@
+/* Reset page */
+* {
+    box-sizing: border-box;
+}
+
+/* Page background */
+body {
+    margin: 0;
+    height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #F5F5F5;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Login form box */
+form {
+    width: 360px;
+    margin: 120px auto;
+    padding: 25px;
+    background-color: #D0E8F2;
+    border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Heading */
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Labels */
+label {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+/* Inputs */
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+/* Password Container */
+.password-container {
+    position: relative;
+}
+
+.password-container input {
+    padding-right: 40px;
+}
+
+.show-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 18px;
+}
+
+/* Button Container - side by side */
+.button-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+/* Reset Button */
+.reset-btn {
+    display: block;
+    margin-left: auto;
+    margin-top: 5px;
+    padding: 5px;
+    border: none;
+    border-radius: 5px;
+    font-size: 12px;
+    color: white;
+    background-color: #f5a623;
+    cursor: pointer;
+}
+
+.reset-btn:hover {
+    background-color: red;
+}
+
+/* Login Button */
+.login-btn {
+    width: 100%;
+    margin-top: 5px;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    color: white;
+    background-color: #2196F3;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+/* Login Button Shrink Animation */
+.login-btn.shrink {
+    transform: scale(0.9);
+}
+
+/* Change color of Login btn when curson place on it */
+.login-btn:hover {
+    background-color: #558555;
+}
+
+/* Register Text */
+.register-text {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+}
