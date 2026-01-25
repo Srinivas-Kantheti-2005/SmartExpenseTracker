@@ -66,13 +66,6 @@ input {
     font-size: 18px;
 }
 
-/* Button Container - side by side */
-.button-container {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 15px;
-}
-
 /* Reset Button */
 .reset-btn {
     display: block;
@@ -120,4 +113,28 @@ input {
     text-align: center;
     margin-top: 15px;
     font-size: 14px;
+}
+
+/* Register Button */
+.register-btn {
+    width: 100%;
+    margin-top: 5px;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    color: white;
+    background-color: #2196F3;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+/* Register Button Shrink Animation */
+.register-btn.shrink {
+    transform: scale(0.9);
+}
+
+/* Change color of Register btn when curson place on it */
+.register-btn:hover {
+    background-color: #558555;
 }
