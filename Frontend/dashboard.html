@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | Smart Expense Tracker</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+
+<body>
+
+<!-- =======================
+     Sidebar
+======================= -->
+<aside class="sidebar">
+    <nav class="sidebar-menu">
+        <a href="#" class="menu-item"><span class="icon">🏠</span><span class="label">Dashboard</span></a>
+        <a href="#" class="menu-item"><span class="icon">👤</span><span class="label">Profile</span></a>
+        <a href="#" class="menu-item"><span class="icon">💳</span><span class="label">Transactions</span></a>
+        <a href="#" class="menu-item"><span class="icon">📈</span><span class="label">Spending History</span></a>
+        <a href="#" class="menu-item"><span class="icon">⚙️</span><span class="label">Settings</span></a>
+    </nav>
+</aside>
+
+<!-- =======================
+     Top Header
+======================= -->
+<header class="top-header">
+
+    <!-- Logo Card -->
+    <div class="header-card card-logo">
+        <img src="assets/SmartExpenseTrackerLogo.png" alt="Logo">
+        <h3>Smart Expense Tracker</h3>
+    </div>
+
+    <!-- Calendar Card (CENTER) -->
+    <div class="header-card card-date">
+        <span class="calendar-icon">🗓️</span>
+        <div class="date-info">
+            <span class="day">Thursday</span>
+            <span class="date-no">01</span>
+            <span class="month">January</span>
+            <span class="year">2026</span>
+        </div>
+    </div>
+
+    <!-- User Card (RIGHT) -->
+    <div class="header-card card-user">
+
+        <!-- Avatar FIRST (with dropdown) -->
+        <div class="user-avatar">
+            <span class="avatar"></span>
+
+            <div class="user-dropdown">
+                <a href="login.html" class="logout-btn">Logout</a>
+            </div>
+        </div>
+
+        <!-- Username SECOND -->
+        <span class="user-name">User Name</span>
+
+    </div>
+
+</header>
+
+<!-- =======================
+     Main Content
+======================= -->
+<main class="main-content">
+
+    <!-- =======================
+         Top Row
+    ======================== -->
+    <div class="top-row">
+
+        <!-- Summary Cards -->
+        <section class="summary-cards">
+            <div class="card">
+                <h4>Monthly Income</h4>
+                <p>₹ 80,000</p>
+            </div>
+            <div class="card">
+                <h4>Monthly Expense</h4>
+                <p>₹ 46,000</p>
+            </div>
+            <div class="card">
+                <h4>Monthly Saving</h4>
+                <p>₹ 14,000</p>
+            </div>
+            <div class="card">
+                <h4>Monthly Balance</h4>
+                <p>₹ 20,000</p>
+            </div>
+        </section>
+
+        <!-- Category-wise Spending -->
+        <section class="category-spending">
+            <h3>Monthly Category-wise Spending</h3>
+
+            <div class="pie-chart-wrapper">
+
+                <div class="pie-chart">
+                    <canvas id="categoryPieChart"></canvas>
+                </div>
+
+                <!-- Category Legend -->
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-color" style="background:#FF6B6B"></div><span>EMIs</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#FFA94D"></div><span>Bills & Utilities</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#FFD93D"></div><span>Groceries</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#6BCB77"></div><span>Healthcare</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#FF7F50"></div><span>Transport</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#4D96FF"></div><span>Savings</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#9B5DE5"></div><span>Subscriptions</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#FFCA3A"></div><span>Personal</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#FF85A1"></div><span>Shopping</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#9CA3AF"></div><span>Others</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#2ECC71"></div><span>Remaining</span></div>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <!-- =======================
+         Bottom Row
+    ======================== -->
+    <div class="bottom-row">
+
+        <!-- Bottom Left: Income vs Expense -->
+        <section class="income-expense">
+            <div class="card graph-card">
+                <h3>Income vs Expense</h3>
+
+                <canvas id="incomeExpenseChart"></canvas>
+
+                <!-- Graph Legends -->
+                <div class="income-expense-legend">
+                    <div class="legend-item"><div class="legend-color" style="background:#28a745"></div><span>Income</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#dc3545"></div><span>Expense</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#6fcf97"></div><span>Avg Income</span></div>
+                    <div class="legend-item"><div class="legend-color" style="background:#f28b82"></div><span>Avg Expense</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Spendings Card -->
+        <section class="spending">
+            <div class="card spending-card-detailed">
+                <h3>Spendings</h3>
+
+                <div class="spending-list">
+
+                    <div class="spending-item">
+                        <span class="category-icon">🏦</span>
+                        <span class="category-name">EMIs</span>
+                        <span class="category-notes">Monthly loan payments</span>
+                        <span class="category-amount">₹ 15,000</span>
+                    </div>
+
+                    <div class="spending-item">
+                        <span class="category-icon">💡</span>
+                        <span class="category-name">Bills & Utilities</span>
+                        <span class="category-notes">Electricity, water, internet</span>
+                        <span class="category-amount">₹ 4,500</span>
+                    </div>
+
+                    <div class="spending-item">
+                        <span class="category-icon">🛒</span>
+                        <span class="category-name">Groceries</span>
+                        <span class="category-notes">Monthly shopping</span>
+                        <span class="category-amount">₹ 7,000</span>
+                    </div>
+
+                    <div class="spending-item">
+                        <span class="category-icon">🏥</span>
+                        <span class="category-name">Healthcare</span>
+                        <span class="category-notes">Medicines & doctor visits</span>
+                        <span class="category-amount">₹ 2,000</span>
+                    </div>
+
+                    <div class="spending-item">
+                        <span class="category-icon">🚗</span>
+                        <span class="category-name">Transport</span>
+                        <span class="category-notes">Fuel, cab, public transport</span>
+                        <span class="category-amount">₹ 3,500</span>
+                    </div>
+
+                    <div class="spending-item">
+                        <span class="category-icon">💰</span>
+                        <span class="category-name">Savings</span>
+                        <span class="category-notes">Bank deposits or investments</span>
+                        <span class="category-amount">₹ 14,000</span>
+                    </div>
+
+                    <div class="spending-item">
+                        <span class="category-icon">📺</span>
+                        <span class="category-name">Subscriptions</span>
+                        <span class="category-notes">Netflix, Spotify, etc.</span>
+                        <span class="category-amount">₹ 1,200</span>
+                    </div>
+
+                    <div class="spending-item">
+                        <span class="category-icon">👤</span>
+                        <span class="category-name">Personal</span>
+                        <span class="category-notes">Self-care, grooming</span>
+                        <span class="category-amount">₹ 4,000</span>
+                    </div>
+
+                    <div class="spending-item">
+                        <span class="category-icon">🛍️</span>
+                        <span class="category-name">Shopping</span>
+                        <span class="category-notes">Clothes, gadgets</span>
+                        <span class="category-amount">₹ 6,000</span>
+                    </div>
+
+                    <div class="spending-item">
+                        <span class="category-icon">📦</span>
+                        <span class="category-name">Others</span>
+                        <span class="category-notes">Miscellaneous expenses</span>
+                        <span class="category-amount">₹ 2,800</span>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+</main>
+
+<!-- =======================
+     Scripts
+======================= -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/dashboard.js"></script>
+
+</body>
+</html>

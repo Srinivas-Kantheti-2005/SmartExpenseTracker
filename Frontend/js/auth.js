@@ -38,7 +38,9 @@ function validateName(name) {
     return null;
 }
 
-/* ----- Login form Submission ----- */
+// ==========================
+//     Login form Submission
+// ===========================
 const loginForm = document.getElementById("loginForm");
 
 if(loginForm) {
@@ -65,7 +67,7 @@ if(loginForm) {
         const password = document.getElementById("password").value.trim();
 
         // Empty check
-        if(email==="" || password==="") {
+        if(!email || !password) {
             alert("Fill all the fields");
             return;
         }
@@ -96,14 +98,16 @@ if(loginForm) {
                 console.log("Email: ", email);
                 console.log("Password: [HIDDEN]");
 
-                alert("Login page works. Backend not connected yet!");
+                window.location.href = "dashboard.html";
             }, 300);
         }
     });
 }
 
-/* ----- Register form handeling */
-const registerForm = document.getElementById("registerForm");
+// ==============================
+//     Register form handeling
+// ==============================
+    const registerForm = document.getElementById("registerForm");
 
 if(registerForm) {
     const resetBtn = registerForm.querySelector(".reset-btn");
@@ -131,7 +135,7 @@ if(registerForm) {
         const confirmPassword = document.getElementById("confirmPassword").value.trim();
 
         // Empty check
-        if(name==="" || email==="" || password==="" || confirmPassword==="") {
+        if(!name || !email || !password || !confirmPassword) {
             alert("Fill all the fields");
             return;
         }
@@ -176,7 +180,7 @@ if(registerForm) {
                 console.log("Password: [HIDDEN]");
                 console.log("Confirm Password: [HIDDEN]")
 
-                alert("Register form works. Backend not connected!");
+                window.location.href = "login.html";
             }, 300);
         }
     });
