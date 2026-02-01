@@ -1,0 +1,156 @@
+/* ========================================
+   Table Components
+   ======================================== */
+
+.table-container {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Table Header */
+.table thead {
+    background: var(--bg-tertiary);
+}
+
+.table th {
+    padding: var(--spacing-md);
+    text-align: left;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Table Body */
+.table td {
+    padding: var(--spacing-md);
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-light);
+    vertical-align: middle;
+}
+
+.table tbody tr {
+    transition: all var(--transition-fast);
+}
+
+.table tbody tr:hover {
+    background: var(--bg-tertiary);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Table Actions */
+.table-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.table-actions .btn-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+}
+
+/* Amount Cells */
+.table .amount-income {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.table .amount-expense {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+/* Category Cell */
+.table .category-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.table .category-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    font-size: 16px;
+}
+
+/* Status Badge */
+.table .status-badge {
+    display: inline-flex;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    border-radius: var(--radius-full);
+}
+
+.table .status-badge.success {
+    background: var(--success-light);
+    color: var(--success-color);
+}
+
+.table .status-badge.warning {
+    background: var(--warning-light);
+    color: var(--warning-color);
+}
+
+.table .status-badge.danger {
+    background: var(--danger-light);
+    color: var(--danger-color);
+}
+
+/* Empty State */
+.table-empty {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    color: var(--text-muted);
+}
+
+.table-empty .icon {
+    font-size: 48px;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.5;
+}
+
+/* Dark Mode */
+body.dark-mode .table-container {
+    background: var(--bg-secondary);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .table thead {
+    background: var(--bg-tertiary);
+}
+
+body.dark-mode .table td,
+body.dark-mode .table th {
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .table {
+        min-width: 600px;
+    }
+}

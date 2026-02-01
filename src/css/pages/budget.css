@@ -1,0 +1,213 @@
+/* ========================================
+   Budget Page Styles
+   ======================================== */
+
+.budget-page {
+    padding: var(--spacing-lg);
+}
+
+.budget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.month-selector {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.month-nav-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-full);
+    background: var(--surface-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.month-nav-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.current-month {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    min-width: 150px;
+    text-align: center;
+}
+
+/* Budget Summary */
+.budget-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.summary-card {
+    padding: var(--spacing-lg);
+    background: var(--surface-color);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.summary-card-title {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.summary-card-value {
+    font-size: var(--font-size-xxl);
+    font-weight: 700;
+}
+
+.summary-card-value.positive {
+    color: var(--success-color);
+}
+
+.summary-card-value.negative {
+    color: var(--danger-color);
+}
+
+/* Budget Categories */
+.budget-categories {
+    display: grid;
+    gap: var(--spacing-md);
+}
+
+.budget-category-card {
+    background: var(--surface-color);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.budget-category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.budget-category-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.budget-category-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--border-radius-lg);
+    font-size: 1.5rem;
+}
+
+.budget-category-name {
+    font-weight: 600;
+    font-size: var(--font-size-md);
+}
+
+.budget-category-amounts {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.budget-amount {
+    text-align: right;
+}
+
+.budget-spent {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+.budget-limit {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+/* Progress Bar */
+.budget-progress {
+    height: 8px;
+    background: var(--surface-secondary);
+    border-radius: var(--border-radius-full);
+    overflow: hidden;
+}
+
+.budget-progress-bar {
+    height: 100%;
+    border-radius: var(--border-radius-full);
+    transition: width 0.3s ease;
+}
+
+.budget-progress-bar.safe {
+    background: var(--success-color);
+}
+
+.budget-progress-bar.warning {
+    background: var(--warning-color);
+}
+
+.budget-progress-bar.danger {
+    background: var(--danger-color);
+}
+
+.budget-percentage {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-top: var(--spacing-xs);
+    text-align: right;
+}
+
+/* Add Budget Button */
+.add-budget-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    padding: var(--spacing-lg);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--border-radius-lg);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-budget-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: var(--primary-color-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .budget-header {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .budget-category-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+
+    .budget-amount {
+        text-align: left;
+    }
+}

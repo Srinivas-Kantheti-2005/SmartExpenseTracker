@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Smart Expense Tracker Profile - Manage your account settings and personal information.">
+    <title>Profile | Smart Expense Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/pages/dashboard.css">
+    <link rel="stylesheet" href="../../css/pages/profile.css">
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+</head>
+
+<body>
+
+    <!-- =======================
+     Sidebar
+======================= -->
+    <!-- =======================
+     Sidebar
+======================= -->
+    <aside class="sidebar">
+        <nav class="sidebar-menu">
+            <!-- Main Navigation -->
+            <a href="../dashboard/index.html" class="menu-item"><span class="icon">🏠</span><span
+                    class="label">Dashboard</span></a>
+            <a href="../transactions/index.html" class="menu-item"><span class="icon">💳</span><span
+                    class="label">Transactions</span></a>
+            <a href="../budget/index.html" class="menu-item"><span class="icon">💰</span><span
+                    class="label">Budget</span></a>
+            <a href="../analytics/index.html" class="menu-item"><span class="icon">📊</span><span
+                    class="label">Analytics</span></a>
+            <a href="../networth/index.html" class="menu-item"><span class="icon">💎</span><span class="label">Net
+                    Worth</span></a>
+            <a href="../categories/index.html" class="menu-item"><span class="icon">📁</span><span
+                    class="label">Categories</span></a>
+
+
+
+            <!-- Scripts -->
+            <!-- Separator -->
+            <div class="sidebar-separator"></div>
+
+            <!-- User/Account Items -->
+            <a href="../profile/index.html" class="menu-item active"><span class="icon">👤</span><span
+                    class="label">Profile</span></a>
+            <a href="../settings/index.html" class="menu-item"><span class="icon">⚙️</span><span
+                    class="label">Settings</span></a>
+            <a href="../auth/login.html" class="menu-item logout-item"><span class="icon">🚪</span><span
+                    class="label">Logout</span></a>
+        </nav>
+    </aside>
+
+    <!-- =======================
+     Top Header
+======================= -->
+    <header class="top-header">
+
+        <!-- Logo Card -->
+        <div class="header-card card-logo">
+            <img src="../../assets/images/logo.png" alt="Logo">
+            <h3>Smart Expense Tracker</h3>
+        </div>
+
+        <!-- Calendar Card (CENTER) -->
+        <div class="header-card card-date">
+            <span class="calendar-icon">🗓️</span>
+            <div class="date-info">
+                <span class="day">Thursday</span>
+                <span class="date-no">01</span>
+                <span class="month">January</span>
+                <span class="year">2026</span>
+            </div>
+        </div>
+
+        <!-- User Card (RIGHT) -->
+        <div class="header-card card-user">
+
+            <!-- Username FIRST -->
+            <span class="user-name">User Name</span>
+
+            <!-- Avatar SECOND (with dropdown) -->
+            <div class="user-avatar">
+                <span class="avatar"></span>
+
+            </div>
+
+        </div>
+
+    </header>
+
+    <!-- =======================
+     Main Content
+======================= -->
+    <main class="main-content">
+
+        <div class="profile-container">
+
+            <!-- Profile Header (Avatar & Name) -->
+            <section class="profile-header-section">
+                <div class="profile-avatar-large">
+                    <span class="avatar-placeholder">👤</span>
+                    <!-- Plus Icon for Upload -->
+                    <label for="avatarUpload" class="change-avatar-btn" title="Update Profile Image">➕</label>
+                    <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
+                </div>
+                <div class="profile-header-info">
+                    <h2 class="profile-name">User Name</h2>
+                    <p class="profile-email">user@example.com</p>
+                    <span class="member-since-purple">Member since...</span>
+                </div>
+            </section>
+
+            <!-- 1. Basic Information -->
+            <section class="profile-section">
+                <div class="section-header">
+                    <h2>Personal Information</h2>
+                    <p class="section-desc">Manage your personal details</p>
+                </div>
+                <form id="basicInfoForm" class="profile-form">
+                    <div class="form-row">
+                        <div class="form-group" style="max-width: 350px;">
+                            <label for="fullName">Full Name</label>
+                            <input type="text" id="fullName" placeholder="Enter your full name" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" placeholder="Enter your email" readonly
+                                title="Email cannot be changed directly" style="opacity: 0.7; cursor: not-allowed;">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Mobile Number</label>
+                            <input type="tel" id="mobile" placeholder="Enter your mobile number" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="dob">Date of Birth</label>
+                            <div class="date-input-wrapper">
+                                <input type="text" id="dob" placeholder="DD-MM-YYYY" readonly>
+                                <span class="custom-calendar-icon" id="dobCalendarIcon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions right-align">
+                        <button type="button" id="btnModifyBasicInfo" class="btn-primary">Modify</button>
+                        <button type="submit" id="btnUpdateBasicInfo" class="btn-primary"
+                            style="display: none;">Update</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- 2. Account Overview -->
+            <section class="profile-section">
+                <div class="section-header">
+                    <h2>Account Overview</h2>
+                    <p class="section-desc">View your account activity</p>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Account Created On</label>
+                        <p id="accountCreated" class="info-value">-</p>
+                    </div>
+                    <div class="info-item">
+                        <label>Last Login</label>
+                        <p id="lastLogin" class="info-value">-</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Financial Preferences -->
+            <section class="profile-section">
+                <div class="section-header">
+                    <h2>Financial Preferences</h2>
+                    <p class="section-desc">Customize your financial tracking settings</p>
+                </div>
+                <form id="financialPrefsForm" class="profile-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="prefCurrency">Currency</label>
+                            <div class="select-wrapper">
+                                <select id="prefCurrency">
+                                    <option value="INR">INR (₹)</option>
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="startDay">Month Start Day</label>
+                            <input type="number" id="startDay" min="1" max="28" value="1" placeholder="e.g., 1">
+                            <small class="form-hint">Day of the month your budget resets</small>
+                        </div>
+                    </div>
+                    <div class="form-actions right-align">
+                        <button type="submit" class="btn-primary">Update</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- 4. Security -->
+            <section class="profile-section">
+                <div class="section-header">
+                    <h2>Security</h2>
+                    <p class="section-desc">Manage your password and security settings</p>
+                </div>
+                <div class="profile-form">
+                    <!-- Current Password -->
+                    <div class="form-group" style="max-width: 350px;">
+                        <label for="currentPasswordDisplay">Current Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="currentPasswordDisplay" readonly
+                                style="opacity: 0.7; cursor: not-allowed;">
+                            <button type="button" class="password-toggle"
+                                data-target="currentPasswordDisplay">◎</button>
+                        </div>
+                    </div>
+
+                    <!-- Change Password Button -->
+                    <div class="form-actions">
+                        <button id="btnOpenPasswordModal" class="btn-primary">Change Password</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. Danger Zone -->
+            <section class="profile-section danger-zone">
+                <div class="section-header">
+                    <h2>Account Management</h2>
+                    <p class="section-desc">Export your data or permanently delete your account</p>
+                </div>
+                <div class="danger-actions">
+                    <div class="danger-row">
+                        <div class="danger-info">
+                            <h4>Export All Data</h4>
+                            <p>Download a complete backup of all your transactions and data as a CSV file.</p>
+                        </div>
+                        <button id="btnExport" class="btn-success">Export Data</button>
+                    </div>
+                    <div class="danger-divider"></div>
+                    <div class="danger-row">
+                        <div class="danger-info">
+                            <h4>Delete Account Permanently</h4>
+                            <p>Warning: This action cannot be undone. All your data will be permanently removed.</p>
+                        </div>
+                        <button id="btnDeleteAccount" class="btn-danger">Delete Account</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Change Password Modal -->
+            <div id="passwordModal" class="modal-overlay">
+                <div class="modal-card">
+                    <button id="closePasswordModal" class="modal-close-btn">&times;</button>
+                    <div class="modal-header">
+                        <h2>Change Password</h2>
+                    </div>
+                    <form id="modalSecurityForm">
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label for="modalCurrentPassword">Current Password</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" id="modalCurrentPassword" placeholder="Enter current password">
+                                <button type="button" class="password-toggle"
+                                    data-target="modalCurrentPassword">◎</button>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label for="modalNewPassword">New Password</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" id="modalNewPassword" placeholder="New password">
+                                <button type="button" class="password-toggle" data-target="modalNewPassword">◎</button>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label for="modalConfirmPassword">Confirm New Password</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" id="modalConfirmPassword" placeholder="Confirm new password">
+                                <button type="button" class="password-toggle"
+                                    data-target="modalConfirmPassword">◎</button>
+                            </div>
+                        </div>
+                        <div class="form-actions" style="display: flex; justify-content: stretch;">
+                            <button type="submit" class="btn-primary" style="width: 100%;">Update Password</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+
+        </div>
+
+    </main>
+
+    <!-- Image Cropper Modal -->
+    <div id="cropperModal" class="modal-overlay">
+        <div class="cropper-modal-card">
+            <div class="cropper-header">
+                <h2>Crop Profile Image</h2>
+                <button id="closeCropperModal" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="cropper-container-wrapper">
+                <img id="cropperImage" src="" alt="Image to crop">
+            </div>
+            <div class="cropper-actions">
+                <button id="btnCancelCrop" class="btn-secondary">Cancel</button>
+                <button id="btnSaveCrop" class="btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal-overlay" id="deleteAccountModal">
+        <div class="modal-card delete-modal-content">
+            <div class="modal-header delete-header"
+                style="margin: -2.5rem -2.5rem 2rem -2.5rem; padding: 1.5rem; border-radius: 24px 24px 0 0;">
+                <h3 style="margin: 0;">Delete Account</h3>
+                <span class="close-modal" id="closeDeleteModal"
+                    style="position: absolute; right: 20px; top: 20px; cursor: pointer; font-size: 1.5rem;">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="warning-icon">⚠️</div>
+                <p class="warning-text">This action cannot be undone. This will permanently delete your account and
+                    remove all your data.</p>
+                <p class="confirmation-instruction">Please type <strong>DELETE ACCOUNT</strong> to confirm.</p>
+
+                <form id="deleteAccountForm">
+                    <div class="form-group" style="margin-bottom: 2rem;">
+                        <input type="text" id="deleteConfirmationInput" class="form-control"
+                            placeholder="DELETE ACCOUNT" required autocomplete="off">
+                    </div>
+                    <div class="form-actions center-align">
+                        <button type="submit" class="btn-danger" id="confirmDeleteBtn">Confirm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cropper.js Library -->
+    <!-- Flatpickr Library -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <script src="../../js/utils/date-update.js"></script>
+    <script src="../../js/utils/header-utils.js"></script>
+    <script src="../../js/pages/profile.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Smart Expense Tracker Settings - Customize your app preferences and account settings.">
+    <title>Settings | Smart Expense Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/pages/dashboard.css">
+    <link rel="stylesheet" href="../../css/pages/pages.css">
+</head>
+
+<body>
+
+    <!-- =======================
+     Sidebar
+======================= -->
+    <!-- =======================
+     Sidebar
+======================= -->
+    <aside class="sidebar">
+        <nav class="sidebar-menu">
+            <!-- Main Navigation -->
+            <a href="../dashboard/index.html" class="menu-item"><span class="icon">🏠</span><span
+                    class="label">Dashboard</span></a>
+            <a href="../transactions/index.html" class="menu-item"><span class="icon">💳</span><span
+                    class="label">Transactions</span></a>
+            <a href="../budget/index.html" class="menu-item"><span class="icon">💰</span><span
+                    class="label">Budget</span></a>
+            <a href="../analytics/index.html" class="menu-item"><span class="icon">📊</span><span
+                    class="label">Analytics</span></a>
+            <a href="../networth/index.html" class="menu-item"><span class="icon">💎</span><span class="label">Net
+                    Worth</span></a>
+            <a href="../categories/index.html" class="menu-item"><span class="icon">📁</span><span
+                    class="label">Categories</span></a>
+
+            <!-- Separator -->
+            <div class="sidebar-separator"></div>
+
+            <!-- User/Account Items -->
+            <a href="../profile/index.html" class="menu-item"><span class="icon">👤</span><span
+                    class="label">Profile</span></a>
+            <a href="../settings/index.html" class="menu-item active"><span class="icon">⚙️</span><span
+                    class="label">Settings</span></a>
+            <a href="../auth/login.html" class="menu-item logout-item"><span class="icon">🚪</span><span
+                    class="label">Logout</span></a>
+        </nav>
+    </aside>
+
+    <!-- ... (rest of the file) ... -->
+
+    <script src="../../js/utils/date-update.js"></script>
+    <script src="../../js/utils/header-utils.js"></script>
+    <script src="../../js/pages/settings.js"></script>
+
+    <!-- =======================
+     Top Header
+======================= -->
+    <header class="top-header">
+
+        <!-- Logo Card -->
+        <div class="header-card card-logo">
+            <img src="../../assets/images/logo.png" alt="Logo">
+            <h3>Smart Expense Tracker</h3>
+        </div>
+
+        <!-- Calendar Card (CENTER) -->
+        <div class="header-card card-date">
+            <span class="calendar-icon">🗓️</span>
+            <div class="date-info">
+                <span class="day">Thursday</span>
+                <span class="date-no">01</span>
+                <span class="month">January</span>
+                <span class="year">2026</span>
+            </div>
+        </div>
+
+        <!-- User Card (RIGHT) -->
+        <div class="header-card card-user">
+            <span class="user-name">User Name</span>
+            <div class="user-avatar">
+                <span class="avatar"></span>
+            </div>
+        </div>
+
+    </header>
+
+    <!-- =======================
+     Main Content
+======================= -->
+    <main class="main-content">
+
+        <div class="page-container">
+
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>⚙️ Settings</h1>
+                <p>Customize your app preferences and account settings</p>
+            </div>
+
+            <!-- Settings Sections -->
+            <div class="settings-grid">
+
+                <!-- Preferences -->
+                <section class="settings-section">
+                    <h2>🎨 Preferences</h2>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Currency</h4>
+                            <p>Select your preferred currency</p>
+                        </div>
+                        <select class="setting-select">
+                            <option value="inr" selected>₹ INR (Indian Rupee)</option>
+                            <option value="usd">$ USD (US Dollar)</option>
+                            <option value="eur">€ EUR (Euro)</option>
+                            <option value="gbp">£ GBP (British Pound)</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Date Format</h4>
+                            <p>Choose how dates are displayed</p>
+                        </div>
+                        <select class="setting-select">
+                            <option value="dd-mm-yyyy" selected>DD/MM/YYYY</option>
+                            <option value="mm-dd-yyyy">MM/DD/YYYY</option>
+                            <option value="yyyy-mm-dd">YYYY-MM-DD</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Dark Mode</h4>
+                            <p>Enable dark theme for the app</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="darkMode">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Notifications -->
+                <section class="settings-section">
+                    <h2>🔔 Notifications</h2>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Email Notifications</h4>
+                            <p>Receive weekly expense summaries</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="emailNotif" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Budget Alerts</h4>
+                            <p>Get notified when nearing budget limits</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="budgetAlerts" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Bill Reminders</h4>
+                            <p>Remind me about upcoming bills</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="billReminders" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Security -->
+                <section class="settings-section">
+                    <h2>🔒 Security</h2>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Change Password</h4>
+                            <p>Update your account password</p>
+                        </div>
+                        <button class="btn-setting">Change</button>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Two-Factor Authentication</h4>
+                            <p>Add extra security to your account</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="twoFactor">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Login History</h4>
+                            <p>View your recent login activity</p>
+                        </div>
+                        <button class="btn-setting">View</button>
+                    </div>
+                </section>
+
+                <!-- Data & Privacy -->
+                <section class="settings-section">
+                    <h2>📁 Data & Privacy</h2>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Export Data</h4>
+                            <p>Download all your transaction data</p>
+                        </div>
+                        <button class="btn-setting">Export</button>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Import Data</h4>
+                            <p>Import transactions from CSV file</p>
+                        </div>
+                        <button class="btn-setting">Import</button>
+                    </div>
+
+                    <div class="setting-item danger">
+                        <div class="setting-info">
+                            <h4>Delete Account</h4>
+                            <p>Permanently delete your account and data</p>
+                        </div>
+                        <button class="btn-danger">Delete</button>
+                    </div>
+                </section>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <script src="../../js/utils/date-update.js"></script>
+    <script src="../../js/pages/settings.js"></script>
+
+</body>
+
+</html>

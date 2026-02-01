@@ -1,0 +1,371 @@
+/* Category Header Card */
+body {
+    background: #f3f4f6;
+    min-height: 100vh;
+}
+
+.category-header-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
+}
+
+.category-header-card h1 {
+    font-size: 24px;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.category-header-card p {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+/* Controls Grid: 4 equal columns for Income, Expense, Investment, Add Btn */
+.header-controls {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+/* Common style for Tabs and Button to ensure identical size/look */
+.type-tab,
+#add-category-btn {
+    width: 100%;
+    height: 48px;
+    /* Fixed height for uniformity */
+    padding: 0 16px;
+    /* Use flex centering instead of padding */
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Center text/icon */
+    gap: 8px;
+    font-size: 14px;
+    position: relative;
+}
+
+.type-tab {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 2px solid transparent;
+}
+
+#add-category-btn {
+    background: #4f46e5;
+    color: white;
+    border: 2px solid #4f46e5;
+    margin: 0;
+    /* Reset margins */
+}
+
+#add-category-btn:hover {
+    background: #4338ca;
+    border-color: #4338ca;
+    transform: translateY(-1px);
+}
+
+.type-tab:hover {
+    transform: translateY(-1px);
+}
+
+/* Styles for Content inside Tab */
+.tab-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.2s;
+}
+
+/* Styles for Actions inside Tab (Edit/Delete) */
+.tab-actions {
+    display: flex;
+    gap: 4px;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.2s;
+    background: inherit;
+    /* Blend with tab color */
+    padding-left: 8px;
+    border-radius: 8px;
+}
+
+/* Show actions on hover */
+.type-tab:hover .tab-actions {
+    opacity: 1;
+}
+
+/* Hide content if it overlaps - optional, but let's just make sure actions are visible */
+
+/* Adjust alignment for tab content to be centered but allow space for actions */
+.type-tab {
+    justify-content: center;
+}
+
+
+/* Specific Color Coding for Active/Hover Tabs */
+
+/* Income - Green */
+.type-tab.tab-income.active {
+    background: #dcfce7;
+    /* Green-100 */
+    color: #166534;
+    /* Green-800 */
+    border-color: #bbf7d0;
+}
+
+.type-tab.tab-income:hover {
+    background: #dcfce7;
+    color: #166534;
+}
+
+/* Expense - Red */
+.type-tab.tab-expense.active {
+    background: #fee2e2;
+    /* Red-100 */
+    color: #991b1b;
+    /* Red-800 */
+    border-color: #fecaca;
+}
+
+.type-tab.tab-expense:hover {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Investment - Blue */
+.type-tab.tab-investment.active {
+    background: #dbeafe;
+    /* Blue-100 */
+    color: #1e40af;
+    /* Blue-800 */
+    border-color: #bfdbfe;
+}
+
+.type-tab.tab-investment:hover {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Responsive: Stack on mobile */
+@media (max-width: 768px) {
+    .header-controls {
+        grid-template-columns: 1fr;
+        /* Stack vertically on small screens */
+    }
+}
+
+/* Category Grid */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+}
+
+.category-card {
+    background: white;
+    /* Per user request: card background white */
+    border-radius: 16px;
+    padding: 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #f1f5f9;
+}
+
+/* .category-card:hover removed to keep main card static */
+
+.category-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(to right, #f8fafc, #ffffff);
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.category-info {
+    display: flex;
+    flex-direction: row;
+    /* Explicitly set row to override dashboard.css */
+    align-items: center;
+    gap: 12px;
+}
+
+.category-icon {
+    font-size: 24px;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
+}
+
+.category-title {
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 16px;
+    letter-spacing: -0.01em;
+}
+
+.category-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    /* Hidden by default as requested */
+    transition: opacity 0.2s;
+}
+
+/* Show actions only when hovering the header part */
+.category-header:hover .category-actions {
+    opacity: 1;
+}
+
+.action-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.edit-btn:hover {
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+.delete-btn:hover {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.subcategory-list {
+    padding: 10px 20px;
+    /* Added side padding */
+    max-height: 240px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Custom Scrollbar */
+.subcategory-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.subcategory-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.subcategory-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.subcategory-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    /* Reduced padding */
+    font-size: 13px;
+    /* Slightly smaller font */
+    color: #334155;
+    border: 1px solid #f1f5f9;
+    background: #ffffff;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    /* Spacing between cards */
+    transition: all 0.2s;
+    cursor: default;
+}
+
+/* Removed last-child rule as we want spacing for all */
+
+.subcategory-item:hover {
+    background: #f8fafc;
+    transform: scale(1.02);
+    /* Scale up on hover */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    /* Optional: slight shadow for depth */
+}
+
+.subcategory-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.subcategory-icon {
+    font-size: 10px;
+    /* Smaller icon for subitems */
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+}
+
+.subcategory-actions {
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    /* Hidden by default */
+    transition: opacity 0.2s;
+}
+
+.subcategory-item:hover .subcategory-actions {
+    opacity: 1;
+    /* Show on hover */
+}
+
+.add-subcategory-btn {
+    width: 100%;
+    padding: 14px;
+    background: white;
+    border: none;
+    border-top: 1px solid #f1f5f9;
+    color: #6366f1;
+    font-weight: 500;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.add-subcategory-btn:hover {
+    background: #f8fafc;
+    color: #4f46e5;
+}
+
+/* Modal form refinement */
+.form-input {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+}
+
+.form-input:focus {
+    background: white;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}

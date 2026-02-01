@@ -1,0 +1,22 @@
+/* ========================================
+   Smart Expense Tracker - Main Stylesheet
+   ======================================== */
+
+/* Base Styles */
+@import url('./base/variables.css');
+@import url('./base/reset.css');
+
+/* Component Styles */
+@import url('./components/buttons.css');
+@import url('./components/cards.css');
+@import url('./components/forms.css');
+@import url('./components/modal.css');
+@import url('./components/sidebar.css');
+@import url('./components/header.css');
+@import url('./components/tables.css');
+
+/* Page Styles - Import as needed in individual pages */
+/* @import url('./pages/dashboard.css'); */
+/* @import url('./pages/auth.css'); */
+/* @import url('./pages/profile.css'); */
+/* @import url('./pages/pages.css'); */

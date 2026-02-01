@@ -1,0 +1,30 @@
+{
+  "name": "smart-expense-tracker",
+  "version": "1.0.0",
+  "description": "A modern, intuitive expense tracking application with beautiful UI and comprehensive financial management features",
+  "main": "src/js/app.js",
+  "scripts": {
+    "start": "npx live-server src/pages --port=3000 --open=/auth/login.html",
+    "dev": "npx live-server src/pages --port=3000 --open=/auth/login.html",
+    "server": "npx json-server --watch src/data/db.json --port 3004",
+    "build": "echo 'Build script not configured yet'",
+    "lint": "echo 'Lint script not configured yet'"
+  },
+  "keywords": [
+    "expense-tracker",
+    "budget",
+    "finance",
+    "money-management",
+    "personal-finance"
+  ],
+  "author": "Srinivas Kantheti",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Srinivas-Kantheti-2005/SmartExpenseTracker.git"
+  },
+  "devDependencies": {
+    "json-server": "^0.17.4",
+    "live-server": "^1.2.0"
+  }
+}

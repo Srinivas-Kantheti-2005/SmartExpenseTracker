@@ -1,0 +1,787 @@
+/* Profile Page Specific Styles */
+
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    /* Increased opacity for cleaner look */
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --card-radius: 20px;
+    --primary-color: #4f46e5;
+    --primary-hover: #4338ca;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --purple-badge-bg: #7e22ce;
+    /* Purple for member badge */
+    --purple-badge-text: #ffffff;
+}
+
+/* Force solid background for profile page */
+body {
+    background: #f3f4f6;
+    min-height: 100vh;
+}
+
+.profile-container {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    /* Consistent distance between cards */
+    padding-bottom: 3rem;
+}
+
+/* --- Content Sections --- */
+.profile-section {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--card-radius);
+    padding: 2rem;
+    margin-bottom: 0;
+    /* Handled by container gap */
+    backdrop-filter: blur(20px);
+    /* Increased blur */
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+    /* Softer shadow */
+}
+
+.section-header {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    /* Subtle border */
+    padding-bottom: 1rem;
+}
+
+.section-header h2 {
+    font-size: 1.3rem;
+    margin: 0 0 5px;
+    color: var(--text-primary);
+}
+
+.section-desc {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* --- Header Section --- */
+.profile-header-section {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--card-radius);
+    padding: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+}
+
+.profile-avatar-large {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 0;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    overflow: hidden;
+    /* Clip image content here */
+}
+
+/* Remove background when avatar contains an image */
+.profile-avatar-large:has(img) {
+    background: transparent;
+    border: none;
+}
+
+.change-avatar-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: #bfa6fb;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+    color: #ffffff;
+}
+
+.change-avatar-btn:hover {
+    transform: scale(1.1);
+}
+
+.profile-info h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.profile-email {
+    margin: 5px 0 10px;
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.member-since {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.member-since-purple {
+    font-size: 0.85rem;
+    color: var(--purple-badge-text);
+    background: var(--purple-badge-bg);
+    padding: 6px 16px;
+    border-radius: 20px;
+    display: inline-block;
+    font-weight: 500;
+    box-shadow: 0 2px 5px rgba(126, 34, 206, 0.3);
+}
+
+
+/* --- Forms & Inputs --- */
+.profile-form .form-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    /* responsive */
+}
+
+.profile-form .form-group {
+    flex: 1;
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.profile-form label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.profile-form input,
+.profile-form select,
+.profile-form textarea {
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    /* More visible border */
+    border-radius: 10px;
+    padding: 0.6rem 1rem;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.profile-form select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 2.5rem;
+    cursor: pointer;
+}
+
+/* Select wrapper for custom arrow */
+.select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.select-wrapper select {
+    width: 100%;
+}
+
+/* Absolutely positioned arrow using ::after on wrapper */
+.select-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #333;
+    pointer-events: none;
+}
+
+.profile-form input:focus,
+.profile-form select:focus,
+.profile-form textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.profile-form input[readonly] {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background: rgba(0, 0, 0, 0.03);
+}
+
+/* Increase currency dropdown size to match date input */
+#prefCurrency {
+    min-width: 250px;
+}
+
+/* Spacing for dual button layout */
+.form-actions.right-align button {
+    margin-left: 0.75rem;
+}
+
+.form-actions.right-align button:first-child {
+    margin-left: 0;
+}
+
+.form-hint {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: -0.2rem;
+}
+
+.form-actions {
+    margin-top: 1rem;
+}
+
+.form-actions.right-align {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.form-actions.center-align {
+    display: flex;
+    justify-content: center;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-outline,
+.btn-danger,
+.btn-success {
+    padding: 0.8rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    font-size: 14px;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.btn-secondary {
+    background: #ffffff;
+    color: var(--text-primary);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary:hover {
+    background: #f9fafb;
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* --- Info Grid (Account Overview) --- */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.info-item label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.info-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    /* Bolder */
+    color: var(--text-primary);
+}
+
+/* --- Danger Zone --- */
+.profile-section.danger-zone {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(254, 242, 242, 0.5);
+    /* Light red tint */
+}
+
+.danger-zone .section-header h2 {
+    color: #ef4444;
+    /* Red */
+}
+
+.danger-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.danger-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.danger-info h4 {
+    margin: 0 0 5px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.danger-info p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--text-secondary);
+    color: var(--text-primary);
+}
+
+.btn-outline:hover {
+    border-color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.btn-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.btn-danger:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: white;
+}
+
+.btn-success {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.btn-success:hover {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: white;
+}
+
+.danger-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* --- Change Password Modal --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-card {
+    background: #ffffff;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 500px;
+    padding: 2.5rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    transform: translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.modal-overlay.active .modal-card {
+    transform: translateY(0);
+}
+
+.modal-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.modal-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Modal form styling */
+#modalSecurityForm .form-group {
+    margin-bottom: 1rem;
+}
+
+#modalSecurityForm label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+#modalSecurityForm input {
+    width: 100%;
+    padding: 0.6rem 2.5rem 0.6rem 1rem;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    background: #f9fafb;
+    transition: all 0.3s ease;
+}
+
+#modalSecurityForm input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.password-input-wrapper {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.password-toggle:hover {
+    opacity: 1;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .profile-header-section {
+        flex-direction: column;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .danger-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .danger-row button {
+        width: 100%;
+    }
+
+    .form-actions {
+        width: 100%;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+}
+
+/* --- Image Cropper Modal Styles --- */
+.cropper-modal-card {
+    background: #ffffff;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 700px;
+    padding: 2rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    transform: translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.modal-overlay.active .cropper-modal-card {
+    transform: translateY(0);
+}
+
+.cropper-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.cropper-header h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.cropper-container-wrapper {
+    max-height: 400px;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #f9fafb;
+    margin-bottom: 1.5rem;
+}
+
+.cropper-container-wrapper img {
+    max-width: 100%;
+    display: block;
+}
+
+.cropper-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.cropper-actions button {
+    min-width: 120px;
+}
+
+/* Responsive cropper modal */
+@media (max-width: 768px) {
+    .cropper-modal-card {
+        width: 95%;
+        padding: 1.5rem;
+    }
+
+    .cropper-container-wrapper {
+        max-height: 300px;
+    }
+
+    .cropper-actions {
+        flex-direction: column;
+    }
+
+    .cropper-actions button {
+        width: 100%;
+    }
+}
+
+/* --- Custom Date Input Styles --- */
+.date-input-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    /* alignment */
+    align-items: center;
+}
+
+.date-input-wrapper input {
+    width: 100%;
+    padding-right: 40px;
+    /* Space for icon */
+}
+
+/* Hide native calendar icon */
+.date-input-wrapper input::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+}
+
+.custom-calendar-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    z-index: 2;
+}
+
+
+.custom-calendar-icon:hover {
+    color: var(--primary-color);
+}
+
+/* --- Flatpickr Customization --- */
+.flatpickr-current-month {
+    font-size: 0.9rem !important;
+    padding-top: 5px !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+}
+
+.flatpickr-current-month input.cur-year {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+}
+
+/* Make DOB input readonly - only calendar interaction allowed */
+#dob {
+    cursor: pointer !important;
+    caret-color: transparent !important;
+}
+
+#dob:focus {
+    cursor: pointer !important;
+}
+
+/* --- Delete Account Modal Styles --- */
+.delete-modal-content {
+    border-top: 5px solid var(--danger-color);
+}
+
+.delete-header {
+    background-color: var(--danger-light);
+    color: var(--danger-color);
+}
+
+.delete-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.warning-icon {
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    animation: pulse-warning 2s infinite;
+}
+
+.warning-text {
+    text-align: center;
+    color: var(--danger-color);
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+}
+
+.confirmation-instruction {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+}
+
+#deleteConfirmationInput {
+    text-align: center;
+    letter-spacing: 1px;
+    font-weight: 600;
+    width: 100%;
+    max-width: 400px;
+    /* Increased width for longer text */
+    margin: 0 auto;
+    display: block;
+
+    /* Standard Input Styles to match Profile Form */
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    /* Slightly larger padding for better emphasis */
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    /* Slightly larger font */
+    transition: all 0.3s ease;
+}
+
+#deleteConfirmationInput:focus {
+    outline: none;
+    border-color: var(--danger-color);
+    /* Red focus for danger action */
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+#deleteConfirmationInput::placeholder {
+    font-weight: 400;
+}
+
+@keyframes pulse-warning {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
