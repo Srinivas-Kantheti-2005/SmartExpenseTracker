@@ -4,14 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Smart Expense Tracker Income - Track and manage your income sources.">
     <title>Income | Smart Expense Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../css/pages/dashboard.css">
-    <link rel="stylesheet" href="../../css/pages/pages.css">
+    <link rel="stylesheet" href="../../css/pages/income.css">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
 </head>
 
 <body>
+
+    <!-- =======================
+     Sidebar
+    ======================= -->
     <aside class="sidebar">
         <nav class="sidebar-menu">
+            <!-- Main Navigation -->
             <a href="../dashboard/index.html" class="menu-item"><span class="icon">🏠</span><span
                     class="label">Dashboard</span></a>
             <a href="../transactions/index.html" class="menu-item"><span class="icon">💳</span><span
@@ -28,7 +41,11 @@
                     Worth</span></a>
             <a href="../categories/index.html" class="menu-item"><span class="icon">📁</span><span
                     class="label">Categories</span></a>
+
+            <!-- Separator -->
             <div class="sidebar-separator"></div>
+
+            <!-- User/Account Items -->
             <a href="../profile/index.html" class="menu-item"><span class="icon">👤</span><span
                     class="label">Profile</span></a>
             <a href="../settings/index.html" class="menu-item"><span class="icon">⚙️</span><span
@@ -38,32 +55,172 @@
         </nav>
     </aside>
 
+    <!-- =======================
+     Top Header
+    ======================= -->
     <header class="top-header">
+
+        <!-- Logo Card -->
         <div class="header-card card-logo">
             <img src="../../assets/images/logo.png" alt="Logo">
             <h3>Smart Expense Tracker</h3>
         </div>
+
+        <!-- Calendar Card (CENTER) -->
+        <div class="header-card card-date">
+            <span class="calendar-icon">🗓️</span>
+            <div class="date-info">
+                <span class="day">Thursday</span>
+                <span class="date-no">01</span>
+                <span class="month">January</span>
+                <span class="year">2026</span>
+            </div>
+        </div>
+
+        <!-- User Card (RIGHT) -->
         <div class="header-card card-user">
             <span class="user-name">User Name</span>
-            <div class="user-avatar"><span class="avatar"></span></div>
+            <div class="user-avatar">
+                <span class="avatar"></span>
+            </div>
         </div>
+
     </header>
 
+    <!-- =======================
+     Main Content
+    ======================= -->
     <main class="main-content">
+
         <div class="page-container">
-            <div class="page-header">
-                <h1>💸 Income</h1>
-                <p>Track and manage your income sources</p>
+
+            <!-- Title Card -->
+            <div class="income-header-card">
+                <div class="header-content">
+                    <h1>Income</h1>
+                    <p>View and manage your monthly income</p>
+                </div>
             </div>
-            <div class="card" style="padding: 40px; text-align: center; background: white; border-radius: 16px;">
-                <h2>Coming Soon</h2>
-                <p>We are working on bringing you a comprehensive Income management dashboard.</p>
+
+            <!-- New Single Column Layout -->
+            <div class="income-layout">
+
+                <!-- Top Row: Month Selector & Total Income -->
+                <div class="top-row-container">
+                    <!-- Month Selector -->
+                    <div class="month-selector-card">
+                        <button id="prev-month" class="month-nav-btn">
+                            <span class="icon">◀</span>
+                        </button>
+                        <div class="date-display-container">
+                            <span class="calendar-icon" id="calendar-icon-trigger">🗓️</span>
+                            <span id="current-month" class="current-month-display">January 2026</span>
+                            <!-- Hidden input for Flatpickr -->
+                            <input type="text" id="month-picker" style="display: none;">
+                        </div>
+                        <button id="next-month" class="month-nav-btn">
+                            <span class="icon">▶</span>
+                        </button>
+                    </div>
+
+                    <!-- Total Monthly Income Card (Moved here) -->
+                    <div class="total-income-card">
+                        <span class="total-income-label">Total Monthly Income</span>
+                        <span class="total-income-value" id="total-income-display">₹ 0</span>
+                    </div>
+                </div>
+
+                <!-- Middle Row: Income List -->
+                <div class="income-list-card">
+                    <div class="card-header">
+                        <h3>Income List</h3>
+                    </div>
+                    <div class="income-table-container">
+                        <table class="income-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Item</th>
+                                    <th>Note</th>
+                                    <th>Amount</th>
+                                    <th style="text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="income-list-body">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                        <div id="no-incomes-message" class="empty-state" style="display: none;">
+                            <span class="empty-icon">📭</span>
+                            <p>Add your first income below</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Add Income Form (Full Width & Horizontal) -->
+                <div class="add-income-card">
+                    <h3 id="form-title">Add Income</h3>
+                    <form id="income-form">
+                        <div class="form-row-grid">
+                            <!-- Row 1: Category, Item, Date, Amount -->
+                            <div class="form-group">
+                                <label for="category-select">Category</label>
+                                <div class="select-wrapper">
+                                    <select id="category-select" required>
+                                        <option value="" disabled selected>Select Category</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="item-select">Item</label>
+                                <div class="select-wrapper">
+                                    <select id="item-select" disabled>
+                                        <option value="" disabled selected>Select Item</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="income-date">Date</label>
+                                <input type="date" id="income-date" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="income-amount">Amount</label>
+                                <input type="number" id="income-amount" placeholder="₹ 0" min="1" required>
+                            </div>
+
+                            <!-- Row 2: Description (Full Width) -->
+                            <div class="form-group span-full">
+                                <label for="income-note">Description</label>
+                                <textarea id="income-note" placeholder="Optional notes" rows="1"
+                                    class="single-line-input"></textarea>
+                            </div>
+
+                            <!-- Row 3: Buttons (Centered) -->
+                            <div class="form-actions-centered">
+                                <button type="button" id="reset-form-btn" class="btn btn-reset">Reset</button>
+                                <button type="submit" id="save-income-btn" class="btn btn-primary">Add Income</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
             </div>
+
         </div>
     </main>
 
+    <!-- Flatpickr Library -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <script src="../../js/utils/date.js"></script>
     <script src="../../js/utils/header-utils.js"></script>
     <script src="../../js/pages/settings.js"></script>
+    <script src="../../js/pages/income.js"></script>
+
 </body>
 
 </html>

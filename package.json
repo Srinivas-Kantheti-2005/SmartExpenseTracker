@@ -4,8 +4,8 @@
   "description": "A modern, intuitive expense tracking application with beautiful UI and comprehensive financial management features",
   "main": "src/js/app.js",
   "scripts": {
-    "start": "npx live-server src/pages --port=3000 --open=/auth/login.html",
-    "dev": "npx live-server src/pages --port=3000 --open=/auth/login.html",
+    "start": "npx live-server src --port=3000 --open=/pages/auth/login.html",
+    "dev": "npx live-server src --port=3000 --open=/pages/auth/login.html",
     "server": "npx json-server --watch src/data/db.json --port 3004",
     "build": "echo 'Build script not configured yet'",
     "lint": "echo 'Lint script not configured yet'"

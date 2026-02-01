@@ -5,7 +5,7 @@ let currentUser = null;
 document.addEventListener('DOMContentLoaded', async function () {
     const userStr = localStorage.getItem('user');
     if (!userStr) {
-        window.location.href = '../auth/login.html';
+        // Allow page-specific scripts to handle auth/redirects
         return;
     }
     currentUser = JSON.parse(userStr);
