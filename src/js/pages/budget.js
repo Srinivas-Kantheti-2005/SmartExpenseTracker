@@ -1,132 +1,552 @@
 /* ========================================
    Budget Page Controller
    ======================================== */
+console.log('Budget.js loaded');
 
-document.addEventListener('DOMContentLoaded', function () {
-    initBudgetPage();
-});
+(function () { // Start IIFE
 
-// Current displayed month/year
-let currentMonth = new Date().getMonth() + 1;
-let currentYear = new Date().getFullYear();
+    const BUDGET_API_BASE = 'http://localhost:3004'; // MUST include /api per app.js
 
-function initBudgetPage() {
-    loadBudgets();
-    setupEventListeners();
-    updateMonthDisplay();
-}
+    // State
+    let currentMonth = new Date().getMonth() + 1;
+    let currentYear = new Date().getFullYear();
+    let monthBudgets = [];
+    let allCategories = [];
+    let allItems = []; // All items
+    let filteredItems = []; // Items for selected category
+    let currentUser = null;
+    let authToken = null;
 
-function setupEventListeners() {
-    // Month navigation
-    document.getElementById('prev-month')?.addEventListener('click', () => changeMonth(-1));
-    document.getElementById('next-month')?.addEventListener('click', () => changeMonth(1));
+    let editingBudgetId = null;
+    let formTitle = null;
+    let saveBtn = null;
+    let cancelBtn = null;
 
-    // Add budget button
-    document.getElementById('add-budget-btn')?.addEventListener('click', showAddBudgetModal);
-}
-
-function changeMonth(delta) {
-    currentMonth += delta;
-
-    if (currentMonth > 12) {
-        currentMonth = 1;
-        currentYear++;
-    } else if (currentMonth < 1) {
-        currentMonth = 12;
-        currentYear--;
+    // Safe Execution
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initBudgetPage);
+    } else {
+        initBudgetPage();
     }
 
-    updateMonthDisplay();
-    loadBudgets();
-}
+    async function initBudgetPage() {
+        console.log('Initializing Budget Page...');
 
-function updateMonthDisplay() {
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'];
+        // Auth Check
+        const userStr = localStorage.getItem('user');
+        const token = localStorage.getItem('token'); // Get Token
 
-    const displayEl = document.getElementById('current-month');
-    if (displayEl) {
-        displayEl.textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
+        if (!userStr) {
+            console.warn('No user/token found, redirecting...');
+            window.location.href = '../auth/login.html';
+            return;
+        }
+
+        try {
+            currentUser = JSON.parse(userStr);
+            authToken = token;
+        } catch (e) {
+            console.error('Invalid user data');
+            window.location.href = '../auth/login.html';
+            return;
+        }
+
+        formTitle = document.getElementById('form-title');
+        saveBtn = document.getElementById('save-budget-btn');
+        cancelBtn = document.getElementById('cancel-edit-btn');
+
+        setupEventListeners();
+
+        // 1. Load Categories FIRST
+        await fetchCategories();
+
+        // 2. Populate Categories
+        populateCategorySelect();
+        setupDependentDropdown();
+
+        // 3. UI Updates
+        updateMonthDisplay();
+
+        // 4. Load Data
+        loadBudgets();
     }
-}
 
-function loadBudgets() {
-    // For now, load from localStorage
-    const budgets = getBudgetsFromStorage();
-    renderBudgets(budgets);
-    updateBudgetSummary(budgets);
-}
+    function setupEventListeners() {
+        document.getElementById('prev-month')?.addEventListener('click', () => changeMonth(-1));
+        document.getElementById('next-month')?.addEventListener('click', () => changeMonth(1));
 
-function getBudgetsFromStorage() {
-    const stored = localStorage.getItem('budgets');
-    if (!stored) return getDefaultBudgets();
+        if (typeof flatpickr !== 'undefined') {
+            const fp = flatpickr("#month-picker", {
+                dateFormat: "Y-m-d",
+                defaultDate: `${currentYear}-${currentMonth}-01`,
+                clickOpens: false,
+                positionElement: document.querySelector('.date-display-container'),
+                plugins: [
+                    new monthSelectPlugin({
+                        shorthand: true,
+                        dateFormat: "Y-m-d",
+                        altFormat: "F Y",
+                        theme: "material_blue"
+                    })
+                ],
+                onChange: function (selectedDates, dateStr, instance) {
+                    if (selectedDates.length > 0) {
+                        const date = selectedDates[0];
+                        currentYear = date.getFullYear();
+                        currentMonth = date.getMonth() + 1;
+                        updateMonthDisplay();
+                        loadBudgets();
+                    }
+                }
+            });
 
-    const all = JSON.parse(stored);
-    return all.filter(b => b.month === currentMonth && b.year === currentYear);
-}
+            const iconTrigger = document.getElementById('calendar-icon-trigger');
+            if (iconTrigger) {
+                iconTrigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    fp.toggle();
+                });
+            }
 
-function getDefaultBudgets() {
-    return [
-        { id: 1, category: 'Food & Dining', icon: '🍽️', color: '#FF6B6B', amount: 10000, spent: 7500 },
-        { id: 2, category: 'Transport', icon: '🚗', color: '#FF7F50', amount: 5000, spent: 3500 },
-        { id: 3, category: 'Bills & Utilities', icon: '💡', color: '#FFA94D', amount: 3000, spent: 2100 },
-        { id: 4, category: 'Shopping', icon: '🛍️', color: '#FF85A1', amount: 5000, spent: 6000 },
-        { id: 5, category: 'Entertainment', icon: '🎬', color: '#F093FB', amount: 3000, spent: 1500 }
-    ];
-}
+            window.updateFlatpickrDate = (year, month) => {
+                fp.setDate(`${year}-${month}-01`, false);
+            };
+        }
 
-function renderBudgets(budgets) {
-    const container = document.getElementById('budget-categories');
-    if (!container) return;
+        // Buttons
+        const resetBtn = document.getElementById('reset-form-btn');
+        if (resetBtn) resetBtn.addEventListener('click', resetForm);
 
-    container.innerHTML = budgets.map(budget => {
-        const percentage = Math.round((budget.spent / budget.amount) * 100);
-        const remaining = budget.amount - budget.spent;
-        const status = percentage >= 100 ? 'danger' : percentage >= 80 ? 'warning' : 'safe';
+        if (cancelBtn) cancelBtn.addEventListener('click', resetForm);
 
-        return `
-            <div class="budget-category-card" data-id="${budget.id}">
-                <div class="budget-category-header">
-                    <div class="budget-category-info">
-                        <div class="budget-category-icon" style="background: ${budget.color}20">
-                            ${budget.icon}
-                        </div>
-                        <div>
-                            <div class="budget-category-name">${budget.category}</div>
-                            <div class="budget-category-amounts">
-                                Remaining: ₹ ${Math.abs(remaining).toLocaleString()}
-                                ${remaining < 0 ? '(Over)' : ''}
-                            </div>
-                        </div>
+        const form = document.getElementById('budget-form');
+        if (form) form.addEventListener('submit', handleFormSubmit);
+    }
+
+    function changeMonth(delta) {
+        currentMonth += delta;
+        if (currentMonth > 12) {
+            currentMonth = 1;
+            currentYear++;
+        } else if (currentMonth < 1) {
+            currentMonth = 12;
+            currentYear--;
+        }
+        updateMonthDisplay();
+        loadBudgets();
+        resetForm();
+    }
+
+    function updateMonthDisplay() {
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'];
+        const displayEl = document.getElementById('current-month');
+        if (displayEl) {
+            displayEl.textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
+        }
+        if (window.updateFlatpickrDate) {
+            window.updateFlatpickrDate(currentYear, currentMonth);
+        }
+    }
+
+    async function fetchCategories() {
+        try {
+            // 1. Fetch Types to find "Expense" ID
+            const typesRes = await fetch(`${BUDGET_API_BASE}/types`, { headers: getAuthHeaders() });
+            const types = await typesRes.json();
+            const expenseType = Array.isArray(types) ? types.find(t => t.name.toLowerCase() === 'expense') : null;
+            const expenseTypeId = expenseType ? expenseType.id : 'type-2'; // Default fallback
+
+            // 2. Fetch All Categories
+            const res = await fetch(`${BUDGET_API_BASE}/categories`, {
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+
+            // 3. Filter for Expense Categories
+            if (Array.isArray(data)) {
+                allCategories = data.filter(cat => cat.typeId === expenseTypeId);
+                console.log('Fetched Expense categories:', allCategories);
+            } else {
+                console.error('Failed to fetch categories: Invalid format', data);
+                allCategories = [];
+            }
+
+            // 4. Fetch All Items
+            const itemsRes = await fetch(`${BUDGET_API_BASE}/items`, { headers: getAuthHeaders() });
+            const itemsData = await itemsRes.json();
+            if (Array.isArray(itemsData)) {
+                allItems = itemsData;
+            } else {
+                allItems = [];
+            }
+
+        } catch (error) {
+            console.error('Error fetching categories/items:', error);
+            allCategories = [];
+            allItems = [];
+        }
+    }
+
+    function setupDependentDropdown() {
+        const catSelect = document.getElementById('category-select');
+        const itemSelect = document.getElementById('item-select');
+
+        if (catSelect && itemSelect) {
+            catSelect.addEventListener('change', () => {
+                const categoryId = catSelect.value;
+                populateItemSelect(categoryId);
+            });
+        }
+    }
+
+    function populateItemSelect(categoryId, selectedItemId = null) {
+        const itemSelect = document.getElementById('item-select');
+        if (!itemSelect) return;
+
+        itemSelect.innerHTML = '<option value="" disabled selected>Select Item</option>';
+
+        if (!categoryId) {
+            itemSelect.disabled = true;
+            return;
+        }
+
+        // Filter items for this category
+        const items = allItems.filter(item => item.categoryId === categoryId);
+
+        if (items.length === 0) {
+            itemSelect.disabled = true;
+            const option = document.createElement('option');
+            option.text = "No items found";
+            itemSelect.add(option);
+            return;
+        }
+
+        itemSelect.disabled = false;
+        items.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.text = item.name;
+            itemSelect.add(option);
+        });
+
+        if (selectedItemId) {
+            itemSelect.value = selectedItemId;
+        }
+    }
+
+    function populateCategorySelect() {
+        const select = document.getElementById('category-select');
+        if (!select) {
+            console.error('Category select element not found!');
+            return;
+        }
+
+        const currentVal = select.value;
+        select.innerHTML = '<option value="" disabled selected>Select Category</option>';
+
+        if (!allCategories || allCategories.length === 0) {
+            console.warn('No categories available to populate.');
+            const option = document.createElement('option');
+            option.disabled = true;
+            option.textContent = "No categories found";
+            select.appendChild(option);
+            return;
+        }
+
+        allCategories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.id;
+            // Use cat.icon directly
+            option.textContent = `${cat.icon || '📁'} ${cat.name}`;
+            select.appendChild(option);
+        });
+
+        if (currentVal) select.value = currentVal;
+        console.log(`Populated ${allCategories.length} categories.`);
+    }
+
+    function getAuthHeaders() {
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        const token = localStorage.getItem('token');
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        return headers;
+    }
+
+    async function loadBudgets() {
+        if (!currentUser) return;
+        try {
+            const res = await fetch(`${BUDGET_API_BASE}/budgets?month=${currentMonth}&year=${currentYear}`, {
+                headers: getAuthHeaders()
+            });
+            const data = await res.json();
+            monthBudgets = Array.isArray(data) ? data : (data.success ? data.data : []);
+
+            // Sort by ID descending (Latest first)
+            monthBudgets.sort((a, b) => b.id - a.id);
+
+            renderBudgets();
+        } catch (error) {
+            console.error('Failed to load budgets:', error);
+            monthBudgets = [];
+            renderBudgets();
+        }
+    }
+
+    function renderBudgets() {
+        const tbody = document.getElementById('budget-list-body');
+        const emptyState = document.getElementById('no-budgets-message');
+        const table = document.querySelector('.budget-table');
+
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (monthBudgets.length === 0) {
+            table.style.display = 'none';
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        table.style.display = 'table';
+        emptyState.style.display = 'none';
+
+        monthBudgets.forEach(budget => {
+            const tr = document.createElement('tr');
+
+            if (editingBudgetId === budget.id) {
+                // RENDER INLINE EDIT ROW
+                tr.classList.add('inline-edit-row');
+
+                // Create Category Select
+                let catOptions = allCategories.map(c =>
+                    `<option value="${c.id}" ${c.id === budget.category_id ? 'selected' : ''}>${c.icon} ${c.name}</option>`
+                ).join('');
+
+                // Get items for the current budget category
+                const items = allItems.filter(i => i.categoryId === budget.category_id);
+                let itemOptions = items.map(i =>
+                    `<option value="${i.id}" ${i.id === budget.item_id ? 'selected' : ''}>${i.name}</option>`
+                ).join('');
+                if (items.length === 0) itemOptions = '<option value="">No items found</option>';
+                else itemOptions = '<option value="">None</option>' + itemOptions;
+
+                tr.innerHTML = `
+                <td>
+                    <select class="inline-cat-select" style="width: 100%; padding: 4px;">
+                        ${catOptions}
+                    </select>
+                </td>
+                <td>
+                    <select class="inline-item-select" style="width: 100%; padding: 4px;" ${items.length === 0 ? 'disabled' : ''}>
+                        ${itemOptions}
+                    </select>
+                </td>
+                <td>
+                    <input type="number" class="inline-amount-input" value="${budget.amount || budget.budget_amount}" style="width: 100%; padding: 4px;">
+                </td>
+                <td style="text-align: right;">
+                    <div class="action-buttons" style="justify-content: flex-end;">
+                        <button class="btn-icon save-inline-btn" title="Save">💾</button>
+                        <button class="btn-icon cancel-inline-btn" title="Cancel">❌</button>
                     </div>
-                    <div class="budget-amount">
-                        <div class="budget-spent">₹ ${budget.spent.toLocaleString()}</div>
-                        <div class="budget-limit">of ₹ ${budget.amount.toLocaleString()}</div>
+                </td>
+                `;
+
+                // Event Listeners for inline elements
+                const catSelect = tr.querySelector('.inline-cat-select');
+                const itemSelect = tr.querySelector('.inline-item-select');
+
+                catSelect.addEventListener('change', () => {
+                    const newCatId = catSelect.value;
+                    const newItems = allItems.filter(i => i.categoryId === newCatId);
+                    itemSelect.innerHTML = '<option value="">None</option>' + newItems.map(i =>
+                        `<option value="${i.id}">${i.name}</option>`
+                    ).join('');
+                    itemSelect.disabled = newItems.length === 0;
+                    if (newItems.length === 0) itemSelect.innerHTML = '<option value="">No items found</option>';
+                });
+
+                tr.querySelector('.save-inline-btn').addEventListener('click', () => saveInlineEdit(budget.id, tr));
+                tr.querySelector('.cancel-inline-btn').addEventListener('click', () => {
+                    editingBudgetId = null;
+                    renderBudgets();
+                });
+
+            } else {
+                // RENDER STATIC ROW
+                const cat = allCategories.find(c => c.id === budget.category_id);
+                const catName = cat ? cat.name : 'Unknown Category';
+                const catIcon = cat ? cat.icon : '📁';
+
+                const item = allItems.find(i => i.id === budget.item_id);
+                const itemName = item ? item.name : '—';
+
+                const amount = budget.budget_amount !== undefined ? budget.budget_amount : (budget.amount || 0);
+
+                tr.innerHTML = `
+                <td>
+                    <div class="category-cell">
+                        <span class="category-icon">${catIcon}</span>
+                        <span>${catName}</span>
                     </div>
-                </div>
-                <div class="budget-progress">
-                    <div class="budget-progress-bar ${status}" style="width: ${Math.min(percentage, 100)}%"></div>
-                </div>
-                <div class="budget-percentage">${percentage}%</div>
-            </div>
-        `;
-    }).join('');
-}
+                </td>
+                <td>${itemName}</td>
+                <td>₹ ${Number(amount).toLocaleString()}</td>
+                <td style="text-align: right;">
+                    <div class="action-buttons" style="justify-content: flex-end;">
+                        <button class="btn-icon edit-btn">✏️</button>
+                        <button class="btn-icon delete-btn">🗑️</button>
+                    </div>
+                </td>
+                `;
 
-function updateBudgetSummary(budgets) {
-    const totalBudget = budgets.reduce((sum, b) => sum + b.amount, 0);
-    const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
-    const remaining = totalBudget - totalSpent;
+                tr.querySelector('.edit-btn').addEventListener('click', () => editBudget(budget));
+                tr.querySelector('.delete-btn').addEventListener('click', () => deleteBudget(budget.id));
+            }
+            tbody.appendChild(tr);
+        });
+    }
 
-    document.getElementById('total-budget')?.textContent &&
-        (document.getElementById('total-budget').textContent = `₹ ${totalBudget.toLocaleString()}`);
-    document.getElementById('total-spent')?.textContent &&
-        (document.getElementById('total-spent').textContent = `₹ ${totalSpent.toLocaleString()}`);
-    document.getElementById('total-remaining')?.textContent &&
-        (document.getElementById('total-remaining').textContent = `₹ ${remaining.toLocaleString()}`);
-}
+    function editBudget(budget) {
+        editingBudgetId = budget.id;
+        renderBudgets();
+    }
 
-function showAddBudgetModal() {
-    // Implementation for adding budget
-    console.log('Add budget modal');
-}
+    function resetForm() {
+        editingBudgetId = null;
+        if (formTitle) formTitle.textContent = 'Add Budget';
+        if (saveBtn) saveBtn.textContent = 'Add Budget';
+        if (cancelBtn) cancelBtn.style.display = 'none';
+
+        const catSelect = document.getElementById('category-select');
+        const itemSelect = document.getElementById('item-select');
+
+        if (catSelect) catSelect.value = "";
+        if (itemSelect) {
+            itemSelect.value = "";
+            itemSelect.disabled = true;
+            itemSelect.innerHTML = '<option value="" disabled selected>Select Item</option>';
+        }
+        document.getElementById('budget-amount').value = "";
+    }
+
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        if (!currentUser) return;
+
+        const categoryId = document.getElementById('category-select').value;
+        const itemId = document.getElementById('item-select').value;
+        const amount = document.getElementById('budget-amount').value;
+
+        if (!categoryId || !amount) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        const payload = {
+            category_id: categoryId,
+            item_id: itemId || null, // Include item_id
+            amount: parseInt(amount),
+            month: currentMonth,
+            year: currentYear
+        };
+
+        try {
+            let url = `${BUDGET_API_BASE}/budgets`;
+            let method = 'POST';
+
+            if (editingBudgetId) {
+                url = `${BUDGET_API_BASE}/budgets/${editingBudgetId}`;
+                method = 'PUT';
+            }
+
+            const res = await fetch(url, {
+                method: method,
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                resetForm();
+                loadBudgets(); // Reload to show updated list
+            } else {
+                if (res.status === 401) {
+                    alert('Session expired. Please login again.');
+                    window.location.href = '../auth/login.html';
+                    return;
+                }
+
+                let msg = `Failed to save budget (${res.status} ${res.statusText})`;
+                try {
+                    const d = await res.json();
+                    if (d.error && d.error.message) {
+                        msg = d.error.message;
+                    } else if (d.message) {
+                        msg = d.message;
+                    }
+                } catch (e) { }
+                alert(msg);
+            }
+        } catch (error) {
+            console.error('Error saving budget:', error);
+            alert('An error occurred while saving.');
+        }
+    }
+
+    async function deleteBudget(id) {
+        if (!confirm('Are you sure you want to delete this budget?')) return;
+        try {
+            const res = await fetch(`${BUDGET_API_BASE}/budgets/${id}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+            if (res.ok) loadBudgets();
+            else alert('Failed to delete budget');
+        } catch (error) {
+            console.error('Error deleting:', error);
+            alert('An error occurred.');
+        }
+    }
+
+    async function saveInlineEdit(id, row) {
+        const catId = row.querySelector('.inline-cat-select').value;
+        const itemId = row.querySelector('.inline-item-select').value;
+        const amount = row.querySelector('.inline-amount-input').value;
+
+        if (!catId || !amount) {
+            alert('Category and Amount are required');
+            return;
+        }
+
+        const payload = {
+            category_id: catId,
+            item_id: itemId || null,
+            amount: parseInt(amount),
+            month: currentMonth,
+            year: currentYear
+        };
+
+        try {
+            const res = await fetch(`${BUDGET_API_BASE}/budgets/${id}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                editingBudgetId = null;
+                loadBudgets();
+            } else {
+                alert('Failed to update budget');
+            }
+        } catch (error) {
+            console.error('Error updating budget:', error);
+            alert('An error occurred');
+        }
+    }
+
+})(); // End IIFE

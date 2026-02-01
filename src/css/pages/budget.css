@@ -2,212 +2,501 @@
    Budget Page Styles
    ======================================== */
 
-.budget-page {
-    padding: var(--spacing-lg);
+.budget-header-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
 }
 
-.budget-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-lg);
+.budget-header-card h1 {
+    font-size: 24px;
+    color: #0f172a;
+    margin-bottom: 4px;
 }
 
-.month-selector {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
+.budget-header-card p {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 0;
 }
 
-.month-nav-btn {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-full);
-    background: var(--surface-color);
-    cursor: pointer;
-    transition: all 0.2s;
+/* --- Header Actions --- */
+.header-content {
+    flex: 1;
 }
 
-.month-nav-btn:hover {
-    background: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
+.header-actions {
+    display: none;
+    /* Hidden as per user request */
 }
 
-.current-month {
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    min-width: 150px;
-    text-align: center;
-}
-
-/* Budget Summary */
-.budget-summary {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-xl);
-}
-
-.summary-card {
-    padding: var(--spacing-lg);
-    background: var(--surface-color);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-sm);
-}
-
-.summary-card-title {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-xs);
-}
-
-.summary-card-value {
-    font-size: var(--font-size-xxl);
-    font-weight: 700;
-}
-
-.summary-card-value.positive {
-    color: var(--success-color);
-}
-
-.summary-card-value.negative {
-    color: var(--danger-color);
-}
-
-/* Budget Categories */
-.budget-categories {
-    display: grid;
-    gap: var(--spacing-md);
-}
-
-.budget-category-card {
-    background: var(--surface-color);
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-lg);
-    box-shadow: var(--shadow-sm);
-}
-
-.budget-category-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-md);
-}
-
-.budget-category-info {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-}
-
-.budget-category-icon {
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--border-radius-lg);
-    font-size: 1.5rem;
-}
-
-.budget-category-name {
-    font-weight: 600;
-    font-size: var(--font-size-md);
-}
-
-.budget-category-amounts {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-}
-
-.budget-amount {
-    text-align: right;
-}
-
-.budget-spent {
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-}
-
-.budget-limit {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-}
-
-/* Progress Bar */
-.budget-progress {
-    height: 8px;
-    background: var(--surface-secondary);
-    border-radius: var(--border-radius-full);
-    overflow: hidden;
-}
-
-.budget-progress-bar {
-    height: 100%;
-    border-radius: var(--border-radius-full);
-    transition: width 0.3s ease;
-}
-
-.budget-progress-bar.safe {
-    background: var(--success-color);
-}
-
-.budget-progress-bar.warning {
-    background: var(--warning-color);
-}
-
-.budget-progress-bar.danger {
-    background: var(--danger-color);
-}
-
-.budget-percentage {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    margin-top: var(--spacing-xs);
-    text-align: right;
-}
-
-/* Add Budget Button */
+/* Add Budget Button (Footer) */
 .add-budget-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--spacing-sm);
+    gap: 8px;
     width: 100%;
-    padding: var(--spacing-lg);
-    border: 2px dashed var(--border-color);
-    border-radius: var(--border-radius-lg);
+    padding: 16px;
     background: transparent;
-    color: var(--text-secondary);
+    border: none;
+    border-top: 1px solid #f1f5f9;
+    color: #6366f1;
+    font-weight: 500;
+    font-size: 14px;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .add-budget-btn:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-    background: var(--primary-color-light);
+    background: #f8fafc;
+    color: #4f46e5;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .budget-header {
-        flex-direction: column;
-        gap: var(--spacing-md);
-    }
+.add-budget-btn .icon {
+    font-weight: bold;
+    font-size: 16px;
+}
 
-    .budget-category-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--spacing-sm);
-    }
+/* --- Grid Layout --- */
+.budget-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    /* Balanced width ratio */
+    gap: 30px;
+    align-items: stretch;
+    /* Stretch columns to equal height */
+}
 
-    .budget-amount {
-        text-align: left;
-    }
+/* Left Column Wrapper */
+.budget-controls {
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- Left Column: Month Selector --- */
+.month-selector-card {
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.month-nav-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #e2e8f0;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.month-nav-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.date-display-container {
+    position: relative;
+    /* Anchor for absolute input */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    transition: background 0.2s;
+    /* Removed cursor: pointer from container */
+}
+
+.date-display-container:hover {
+    background: #f8fafc;
+}
+
+.calendar-icon {
+    font-size: 18px;
+    cursor: pointer;
+    /* Add pointer to icon specifically */
+}
+
+.current-month-display {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+    min-width: 140px;
+    /* Slight increase for larger text */
+    text-align: center;
+}
+
+/* --- Left Column: Add Budget Card --- */
+.add-budget-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    /* Restored padding */
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    flex: 1;
+    /* Stretch to fill left column height */
+    display: flex;
+    flex-direction: column;
+}
+
+.add-budget-card h3 {
+    font-size: 18px;
+    color: #0f172a;
+    margin-bottom: 20px;
+    /* Restored spacing */
+    font-weight: 700;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    /* Restored spacing */
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    /* Restored spacing */
+    font-size: 14px;
+    /* Restored size */
+    font-weight: 500;
+    color: #64748b;
+}
+
+.form-group select,
+.form-group input {
+    width: 100%;
+    display: block;
+    box-sizing: border-box;
+    height: 48px;
+    /* Restored height */
+    padding: 0 16px;
+    /* Restored padding */
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 14px;
+    color: #334155;
+    background: #f8fafc;
+    transition: all 0.2s;
+    outline: none;
+    line-height: normal;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+    border-color: #6366f1;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.btn-secondary:hover {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.btn-reset {
+    background: #fff0f0;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+}
+
+.btn-reset:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+/* --- Right Column: Budget List --- */
+.budget-list-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    height: 100%;
+    /* Stretch to grid height */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.budget-list-card .card-header {
+    background: white;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.budget-list-card .card-header h3 {
+    font-size: 18px;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+/* --- Table Styles --- */
+.budget-table-container {
+    flex: 1;
+    max-height: 420px;
+    /* Adjusted to fit 5+ rows comfortably */
+    overflow-y: auto;
+}
+
+.budget-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.budget-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.budget-table th {
+    background: #f8fafc;
+    text-align: left;
+    padding: 18px 24px;
+    /* Reduced vertical padding */
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+    letter-spacing: 0.05em;
+}
+
+.budget-table td {
+    padding: 18px 24px;
+    /* Reduced vertical padding */
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 15px;
+    /* Consistent font size */
+    font-weight: 500;
+    vertical-align: middle;
+}
+
+.budget-table tr:last-child td {
+    border-bottom: none;
+}
+
+.budget-table tr:hover {
+    background: #f8fafc;
+}
+
+.category-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.category-icon {
+    width: 32px;
+    height: 32px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-icon {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover {
+    background: #f1f5f9;
+}
+
+.delete-btn:hover {
+    color: #ef4444;
+    background: #fef2f2;
+}
+
+.edit-btn:hover {
+    color: #3b82f6;
+    background: #eff6ff;
+}
+
+/* --- Modal Styles (In case not imported) --- */
+/* Simple overlay if modal.css is missing/not enough */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    padding: 24px;
+    transform: translateY(20px);
+    transition: all 0.3s;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.close-modal {
+    font-size: 24px;
+    color: #64748b;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.modal-footer {
+    display: flex;
+    margin-top: 24px;
+    justify-content: flex-end;
+}
+
+/* --- Flatpickr Logic --- */
+.flatpickr-calendar {
+    font-family: 'Inter', sans-serif !important;
+    border-radius: 12px !important;
+    width: 280px !important;
+    /* Compact width */
+}
+
+/* Month and Year Text Size */
+.flatpickr-current-month {
+    font-size: 110% !important;
+    /* Start smaller than default */
+    padding-top: 10px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    padding: 0 !important;
+}
+
+.flatpickr-current-month input.cur-year {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.flatpickr-months .flatpickr-month {
+    height: 34px !important;
+}
+
+/* Day headers */
+span.flatpickr-weekday {
+    font-size: 11px !important;
+}
+
+/* Days */
+.flatpickr-day {
+    height: 32px !important;
+    line-height: 32px !important;
+    font-size: 12px !important;
 }

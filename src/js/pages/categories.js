@@ -2,7 +2,7 @@ const API_URL = 'http://localhost:3004';
 let currentType = null;
 let allTypes = [];
 let allCategories = [];
-let allSubcategories = [];
+let allItems = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Initial Load
@@ -17,12 +17,12 @@ async function fetchData() {
         const [typesRes, catsRes, subsRes] = await Promise.all([
             fetch(`${API_URL}/types`),
             fetch(`${API_URL}/categories`),
-            fetch(`${API_URL}/subcategories`)
+            fetch(`${API_URL}/items`)
         ]);
 
         allTypes = await typesRes.json();
         allCategories = await catsRes.json();
-        allSubcategories = await subsRes.json();
+        allItems = await subsRes.json();
 
         // Default to first type if not set or if current type was deleted
         if ((!currentType || !allTypes.find(t => t.id === currentType.id)) && allTypes.length > 0) {
@@ -96,8 +96,8 @@ function createCategoryCard(category) {
     const card = document.createElement('div');
     card.className = 'category-card';
 
-    // Get subcategories for this category
-    const subcategories = allSubcategories.filter(sub => sub.categoryId === category.id);
+    // Get items for this category
+    const items = allItems.filter(item => item.categoryId === category.id);
 
     card.innerHTML = `
         <div class="category-header">
@@ -111,19 +111,19 @@ function createCategoryCard(category) {
             </div>
         </div>
         <div class="subcategory-list">
-            ${subcategories.map(sub => `
+            ${items.map(item => `
                 <div class="subcategory-item">
                     <div class="subcategory-left">
-                        <span>${sub.name}</span>
+                        <span>${item.name}</span>
                     </div>
                     <div class="subcategory-actions">
-                        <button class="action-btn edit-btn" onclick="openEditSubModal('${sub.id}')">✏️</button>
-                        <button class="action-btn delete-btn" onclick="openDeleteSubModal('${sub.id}')">🗑️</button>
+                        <button class="action-btn edit-btn" onclick="openEditItemModal('${item.id}')">✏️</button>
+                        <button class="action-btn delete-btn" onclick="openDeleteItemModal('${item.id}')">🗑️</button>
                     </div>
                 </div>
             `).join('')}
         </div>
-        <button class="add-subcategory-btn" onclick="openAddSubModal('${category.id}')">+ Add item</button>
+        <button class="add-subcategory-btn" onclick="openAddItemModal('${category.id}')">+ Add item</button>
     `;
 
     return card;
@@ -136,8 +136,8 @@ const deleteModal = document.getElementById('deleteModal');
 const form = document.getElementById('categoryForm');
 
 // State for Modal
-let editingItem = null; // { id, type: 'type' | 'category' | 'subcategory' }
-let deletingItem = null; // { id, type: 'type' | 'category' | 'subcategory' }
+let editingItem = null; // { id, type: 'type' | 'category' | 'item' }
+let deletingItem = null; // { id, type: 'type' | 'category' | 'item' }
 
 function openModal(title) {
     document.getElementById('modalTitle').innerText = title;
@@ -170,7 +170,7 @@ document.getElementById('add-category-btn').onclick = () => {
     document.getElementById('parentType').value = 'type';
     document.getElementById('parentId').value = currentType.id;
     document.getElementById('icon-group').style.display = 'block';
-    openModal('Add New Subcategory');
+    openModal('Add New Category');
 };
 
 // EDIT Type
@@ -181,7 +181,7 @@ window.openEditTypeModal = (id) => {
     document.getElementById('itemName').value = type.name;
     document.getElementById('itemIcon').value = type.icon || '';
     document.getElementById('icon-group').style.display = 'block';
-    openModal('Edit Category');
+    openModal('Edit Type');
 }
 
 // EDIT Category
@@ -192,24 +192,24 @@ window.openEditCategoryModal = (id) => {
     document.getElementById('itemName').value = cat.name;
     document.getElementById('itemIcon').value = cat.icon || '';
     document.getElementById('icon-group').style.display = 'block';
-    openModal('Edit Subcategory');
+    openModal('Edit Category');
 };
 
-// ADD Subcategory
-window.openAddSubModal = (categoryId) => {
-    editingItem = { type: 'subcategory', isNew: true };
+// ADD Item
+window.openAddItemModal = (categoryId) => {
+    editingItem = { type: 'item', isNew: true };
     document.getElementById('parentType').value = 'category';
     document.getElementById('parentId').value = categoryId;
     document.getElementById('icon-group').style.display = 'none';
     openModal('Add Item');
 };
 
-// EDIT Subcategory
-window.openEditSubModal = (id) => {
-    const sub = allSubcategories.find(s => s.id === id);
-    if (!sub) return;
-    editingItem = { type: 'subcategory', isNew: false, id: id };
-    document.getElementById('itemName').value = sub.name;
+// EDIT Item
+window.openEditItemModal = (id) => {
+    const item = allItems.find(s => s.id === id);
+    if (!item) return;
+    editingItem = { type: 'item', isNew: false, id: id };
+    document.getElementById('itemName').value = item.name;
     document.getElementById('icon-group').style.display = 'none';
     openModal('Edit Item');
 };
@@ -260,25 +260,25 @@ form.onsubmit = async (e) => {
                 });
             }
 
-        } else if (editingItem.type === 'subcategory') {
+        } else if (editingItem.type === 'item') {
             const payload = {
                 name,
                 categoryId: editingItem.isNew ? parentId : undefined
             };
 
             if (!editingItem.isNew) {
-                const exist = allSubcategories.find(s => s.id === editingItem.id);
+                const exist = allItems.find(s => s.id === editingItem.id);
                 payload.categoryId = exist.categoryId;
             }
 
             if (editingItem.isNew) {
-                await fetch(`${API_URL}/subcategories`, {
+                await fetch(`${API_URL}/items`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ...payload, id: crypto.randomUUID() })
                 });
             } else {
-                await fetch(`${API_URL}/subcategories/${editingItem.id}`, {
+                await fetch(`${API_URL}/items/${editingItem.id}`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -316,10 +316,10 @@ window.openDeleteCategoryModal = (id) => {
     deleteModal.classList.add('active');
 };
 
-window.openDeleteSubModal = (id) => {
-    const sub = allSubcategories.find(s => s.id === id);
-    deletingItem = { type: 'subcategory', id };
-    document.getElementById('deleteItemName').innerText = sub.name;
+window.openDeleteItemModal = (id) => {
+    const item = allItems.find(s => s.id === id);
+    deletingItem = { type: 'item', id };
+    document.getElementById('deleteItemName').innerText = item.name;
     deleteModal.classList.add('active');
 };
 
@@ -330,7 +330,7 @@ document.getElementById('confirmDeleteBtn').onclick = async () => {
         let endpoint = '';
         if (deletingItem.type === 'type') endpoint = 'types';
         else if (deletingItem.type === 'category') endpoint = 'categories';
-        else if (deletingItem.type === 'subcategory') endpoint = 'subcategories';
+        else if (deletingItem.type === 'item') endpoint = 'items';
 
         await fetch(`${API_URL}/${endpoint}/${deletingItem.id}`, { method: 'DELETE' });
 
