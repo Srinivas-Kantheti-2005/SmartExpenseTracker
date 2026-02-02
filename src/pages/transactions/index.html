@@ -11,18 +11,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+
     <link rel="stylesheet" href="../../css/pages/dashboard.css">
     <link rel="stylesheet" href="../../css/pages/pages.css">
+    <link rel="stylesheet" href="../../css/pages/transactions.css">
 </head>
 
 <body>
 
     <!-- =======================
      Sidebar
-======================= -->
-    <!-- =======================
-     Sidebar
-======================= -->
+    ======================= -->
     <aside class="sidebar">
         <nav class="sidebar-menu">
             <!-- Main Navigation -->
@@ -56,16 +60,9 @@
         </nav>
     </aside>
 
-    <!-- ... (rest of the file) ... -->
-
-    <script src="../../js/utils/date-update.js"></script>
-    <script src="../../js/utils/header-utils.js"></script>
-    <script src="../../js/pages/settings.js"></script>
-    <script src="../../js/pages/transactions.js"></script>
-
     <!-- =======================
      Top Header
-======================= -->
+    ======================= -->
     <header class="top-header">
 
         <!-- Logo Card -->
@@ -97,90 +94,178 @@
 
     <!-- =======================
      Main Content
-======================= -->
+    ======================= -->
     <main class="main-content">
 
         <div class="page-container">
 
             <!-- Page Header -->
             <div class="page-header">
-                <h1>💳 Transactions</h1>
-                <p>View and manage all your income and expense transactions</p>
+                <h1>Transactions</h1>
+                <p>All your financial activity in one place</p>
             </div>
 
-            <!-- Filters & Actions -->
-            <section class="filters-section">
-                <div class="filter-group">
-                    <select id="filterType" class="filter-select">
-                        <option value="all">All Types</option>
-                        <option value="income">Income</option>
-                        <option value="expense">Expense</option>
-                    </select>
-                    <select id="filterCategory" class="filter-select">
-                        <option value="all">All Categories</option>
-                        <optgroup label="💰 Income Categories">
-                            <option value="salary">Salary</option>
-                            <option value="bonus">Bonus</option>
-                            <option value="returns">Returns/Refunds</option>
-                            <option value="investment">Investment Returns</option>
-                            <option value="freelance">Freelance</option>
-                            <option value="other-income">Other Income</option>
-                        </optgroup>
-                        <optgroup label="💸 Expense Categories">
-                            <option value="groceries">Food & Dining</option>
-                            <option value="transport">Transport</option>
-                            <option value="housing">Housing</option>
-                            <option value="bills">Bills & Utilities</option>
-                            <option value="shopping">Shopping</option>
-                            <option value="healthcare">Health & Medical</option>
-                            <option value="education">Education</option>
-                            <option value="entertainment">Entertainment</option>
-                            <option value="personal">Personal Care</option>
-                            <option value="travel">Travel</option>
-                            <option value="gifts">Gifts & Donations</option>
-                            <option value="emis">EMI / Loans</option>
-                            <option value="others">Others</option>
-                        </optgroup>
-                    </select>
-                    <input type="month" id="filterMonth" class="filter-input">
+            <!-- Context Row -->
+            <section class="context-row">
+                <!-- Month Selector -->
+                <div class="month-selector-card">
+                    <button id="prev-month" class="month-nav-btn"><span class="icon">‹</span></button>
+                    <div class="date-display-container" id="calendar-icon-trigger" style="cursor: pointer;">
+                        <span class="calendar-icon">🗓️</span>
+                        <span id="current-month" class="current-month-text">January 2026</span>
+                        <input type="text" id="month-picker" style="display: none;">
+                    </div>
+                    <button id="next-month" class="month-nav-btn"><span class="icon">›</span></button>
                 </div>
-                <button class="btn-add-transaction">+ Add Transaction</button>
+
+                <!-- Filter Card -->
+                <div class="filter-card">
+                    <div class="filter-group type-filter-container">
+                        <select id="filter-type">
+                            <option value="all" selected>All Types</option>
+                            <option value="income">Income</option>
+                            <option value="expense">Expense</option>
+                            <option value="investment">Investment</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group category-filter">
+                        <select id="filter-category">
+                            <option value="">All Categories</option>
+                            <!-- Dynamically populated -->
+                        </select>
+                    </div>
+
+                    <div class="filter-group item-filter">
+                        <select id="filter-item" disabled>
+                            <option value="">All Items</option>
+                            <!-- Dynamically populated based on category -->
+                        </select>
+                    </div>
+
+                    <button id="clear-filters-btn" class="btn-text">Clear Filters</button>
+                </div>
             </section>
 
-            <!-- Transactions Table -->
-            <section class="table-section">
-                <div class="table-wrapper">
+            <!-- Transactions List (First) -->
+            <section class="transactions-list-section">
+                <!-- Added Title -->
+                <div class="list-header">
+                    <h3>Recent Transactions</h3>
+                </div>
+
+                <div class="table-container">
                     <table class="transactions-table">
                         <thead>
                             <tr>
                                 <th>Date</th>
-                                <th>Description</th>
-                                <th>Category</th>
                                 <th>Type</th>
+                                <th>Category</th>
+                                <th>Item</th>
+                                <th>Notes</th>
                                 <th>Amount</th>
-                                <th>Actions</th>
+                                <th class="actions-col">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- Dynamically populated by JavaScript -->
+                        <tbody id="transactions-body">
+                            <!-- Transactions rendered here -->
                         </tbody>
                     </table>
-                </div>
 
-                <!-- Pagination -->
-                <div class="pagination">
-                    <button class="page-btn" disabled>← Previous</button>
-                    <span class="page-info">Page 1 of 1</span>
-                    <button class="page-btn" disabled>Next →</button>
+                    <!-- Empty States -->
+                    <div id="empty-state-month" class="empty-state" style="display: none;">
+                        <div class="empty-icon">📝</div>
+                        <p>No transactions for this month.</p>
+                        <p class="sub-text">Add a new transaction below to get started.</p>
+                    </div>
+
+                    <div id="empty-state-filter" class="empty-state" style="display: none;">
+                        <div class="empty-icon">🔍</div>
+                        <p>No transactions match your filters.</p>
+                        <button class="btn-text" onclick="document.getElementById('clear-filters-btn').click()">Clear
+                            Filters</button>
+                    </div>
+
                 </div>
+            </section>
+
+            <!-- Add Transaction Form (Second) -->
+            <section class="add-transaction-card">
+                <h3 id="form-title">Add Transaction</h3>
+                <form id="transaction-form">
+                    <div class="form-row">
+                        <!-- Type -->
+                        <div class="form-group">
+                            <label for="tx-type">Type</label>
+                            <div class="select-wrapper">
+                                <select id="tx-type" required>
+                                    <option value="expense" selected>Expense</option>
+                                    <option value="income">Income</option>
+                                    <option value="investment">Investment</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="form-group">
+                            <label for="tx-category">Category</label>
+                            <div class="select-wrapper">
+                                <select id="tx-category" required>
+                                    <option value="" disabled selected>Select Category</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Item -->
+                        <div class="form-group">
+                            <label for="tx-item">Item</label>
+                            <div class="select-wrapper">
+                                <select id="tx-item" required disabled>
+                                    <option value="" disabled selected>Select Item</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Date -->
+                        <div class="form-group">
+                            <label for="tx-date">Date</label>
+                            <input type="date" id="tx-date" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row second-row">
+                        <div class="form-group notes-group">
+                            <label for="tx-notes">Description</label>
+                            <textarea id="tx-notes" placeholder="Optional notes" rows="1"
+                                class="single-line-input"></textarea>
+                        </div>
+
+                        <!-- Amount -->
+                        <div class="form-group amount-group">
+                            <label for="tx-amount">Amount (₹)</label>
+                            <input type="number" id="tx-amount" placeholder="0.00" min="0" step="0.01" required>
+                        </div>
+
+                        <!-- Submit & Reset Buttons -->
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary" id="add-btn">Add Transaction</button>
+                            <!-- Reset Button Added -->
+                            <button type="button" class="btn-reset" id="reset-btn">Reset</button>
+                        </div>
+                    </div>
+                </form>
             </section>
 
         </div>
 
     </main>
 
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+
     <script src="../../js/utils/date-update.js"></script>
-    <script src="../../js/pages/settings.js"></script>
+    <script src="../../js/utils/header-utils.js"></script>
     <script src="../../js/pages/transactions.js"></script>
 
 </body>

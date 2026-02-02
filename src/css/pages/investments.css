@@ -246,9 +246,20 @@ textarea.single-line-input {
     margin-top: 12px;
 }
 
-.form-actions-centered .btn {
-    flex: 0 0 auto;
-    width: 180px;
+.span-3 {
+    grid-column: span 3;
+}
+
+/* New Inline Actions */
+.form-actions-inline-end {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-top: 29px;
+    /* Align with input */
+}
+
+.form-actions-inline-end .btn {
     height: 48px;
     display: flex;
     align-items: center;
@@ -256,6 +267,14 @@ textarea.single-line-input {
     font-size: 15px;
     font-weight: 700;
     border-radius: 12px;
+}
+
+.form-actions-inline-end #save-investment-btn {
+    flex: 1.5;
+}
+
+.form-actions-inline-end #reset-form-btn {
+    flex: 1;
 }
 
 .form-actions-inline {

@@ -1,527 +1,733 @@
-// Transactions Page JavaScript
-// Handles CRUD operations via JSON Server
+/* ========================================
+   Transactions Page Controller
+   ======================================== */
+console.log('Transactions.js loaded');
 
-const API_URL = 'http://localhost:3004/transactions';
-let transactions = [];
-let editingId = null;
-let currentUser = null;
+(function () {
+    const API_BASE = 'http://localhost:3004';
 
-document.addEventListener('DOMContentLoaded', function () {
-    // Check authentication
-    const userStr = localStorage.getItem('user');
-    if (!userStr) {
-        window.location.href = '../auth/login.html';
-        return;
-    }
-    currentUser = JSON.parse(userStr);
+    // --- State ---
+    // --- State ---
+    // --- State ---
+    const navEntry = performance.getEntriesByType("navigation")[0];
+    const navType = navEntry ? navEntry.type : 'navigate';
 
-    initTransactions();
-});
+    let currentYear, currentMonth;
 
-
-// Income categories
-const incomeCategories = [
-    { value: 'salary', label: 'Salary', icon: '💰' },
-    { value: 'bonus', label: 'Bonus', icon: '🎁' },
-    { value: 'returns', label: 'Returns/Refunds', icon: '↩️' },
-    { value: 'investment', label: 'Investment Returns', icon: '📈' },
-    { value: 'freelance', label: 'Freelance', icon: '💼' },
-    { value: 'other-income', label: 'Other Income', icon: '💵' }
-];
-
-// Expense categories
-const expenseCategories = [
-    { value: 'groceries', label: 'Food & Dining', icon: '🍽️' },
-    { value: 'transport', label: 'Transport', icon: '🚗' },
-    { value: 'housing', label: 'Housing', icon: '🏠' },
-    { value: 'bills', label: 'Bills & Utilities', icon: '🧾' },
-    { value: 'shopping', label: 'Shopping', icon: '🛍️' },
-    { value: 'healthcare', label: 'Health & Medical', icon: '🏥' },
-    { value: 'education', label: 'Education', icon: '📚' },
-    { value: 'entertainment', label: 'Entertainment', icon: '🎬' },
-    { value: 'personal', label: 'Personal Care', icon: '💅' },
-    { value: 'travel', label: 'Travel', icon: '✈️' },
-    { value: 'gifts', label: 'Gifts & Donations', icon: '🎁' },
-    { value: 'emis', label: 'EMI / Loans', icon: '🏦' },
-    { value: 'others', label: 'Others', icon: '📦' },
-    { value: '__add_category__', label: '➕ Add Category', icon: '➕' }
-];
-
-// Subcategories for each expense category (for description suggestions)
-const categorySubcategories = {
-    'groceries': ['Groceries', 'Restaurants', 'Snacks', 'Food Delivery', '➕ Add Subcategory'],
-    'transport': ['Fuel', 'Ride Hailing Services', 'Public Transport', '➕ Add Subcategory'],
-    'housing': ['Rent', 'Maintenance', 'Electricity', 'Water', '➕ Add Subcategory'],
-    'bills': ['Mobile Recharge', 'Internet', 'Gas', 'Subscriptions', '➕ Add Subcategory'],
-    'shopping': ['Clothes', 'Accessories', 'Online Shopping', '➕ Add Subcategory'],
-    'healthcare': ['Doctor Visits', 'Medicines', 'Insurance Premiums', '➕ Add Subcategory'],
-    'education': ['College / School Fees', 'Courses', 'Books', '➕ Add Subcategory'],
-    'entertainment': ['Movies', 'Games', 'Events', '➕ Add Subcategory'],
-    'personal': ['Salon', 'Grooming', 'Cosmetics', '➕ Add Subcategory'],
-    'travel': ['Trips', 'Hotels', 'Transportation', '➕ Add Subcategory'],
-    'gifts': ['Gifts', 'Charity', 'Festivals', '➕ Add Subcategory'],
-    'emis': ['Education Loan', 'Personal Loan', 'Credit Card EMI', '➕ Add Subcategory'],
-    'others': ['Miscellaneous', 'Uncategorized Expenses', '➕ Add Subcategory']
-};
-
-// Subcategories for income categories
-const incomeSubcategories = {
-    'salary': ['Monthly Salary', 'Overtime Pay', 'Arrears'],
-    'bonus': ['Annual Bonus', 'Performance Bonus', 'Festival Bonus'],
-    'returns': ['Product Return', 'Tax Refund', 'Deposit Refund'],
-    'investment': ['Dividend', 'Interest Income', 'Stock Returns', 'Mutual Fund Returns'],
-    'freelance': ['Project Payment', 'Consulting Fee', 'Contract Work'],
-    'other-income': ['Gift Received', 'Rental Income', 'Side Business']
-};
-
-function initTransactions() {
-    const filterType = document.getElementById('filterType');
-    const filterCategory = document.getElementById('filterCategory');
-    const addBtn = document.querySelector('.btn-add-transaction');
-
-    // Load transactions from API
-    fetchTransactions();
-
-    // Type filter change
-    if (filterType) {
-        filterType.addEventListener('change', function () {
-            updateCategoryOptions(this.value);
-            filterTransactions();
-        });
-    }
-
-    // Category filter change
-    if (filterCategory) {
-        filterCategory.addEventListener('change', filterTransactions);
-    }
-
-    // Add transaction button
-    if (addBtn) {
-        addBtn.addEventListener('click', showAddModal);
-    }
-
-    // Create modal HTML
-    createTransactionModal();
-
-    // Attach edit/delete handlers
-    attachActionHandlers();
-}
-
-async function fetchTransactions() {
-    try {
-        const response = await fetch(`${API_URL}?userId=${currentUser.id}`);
-        if (!response.ok) throw new Error('Failed to fetch transactions');
-        transactions = await response.json();
-
-        // Ensure ID is string/number consistent
-        transactions = transactions.map(t => ({ ...t, id: String(t.id) }));
-
-        renderTransactions();
-    } catch (error) {
-        console.error('Error fetching transactions:', error);
-        document.querySelector('.transactions-table tbody').innerHTML = `
-            <tr><td colspan="6" style="text-align:center; color:red;">Failed to load transactions. Check connection.</td></tr>
-        `;
-    }
-}
-
-function updateCategoryOptions(type) {
-    const filterCategory = document.getElementById('filterCategory');
-    if (!filterCategory) return;
-
-    filterCategory.innerHTML = '<option value="all">All Categories</option>';
-
-    if (type === 'all' || type === 'income') {
-        const incomeGroup = document.createElement('optgroup');
-        incomeGroup.label = '💰 Income Categories';
-        incomeCategories.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat.value;
-            option.textContent = cat.label;
-            incomeGroup.appendChild(option);
-        });
-        filterCategory.appendChild(incomeGroup);
-    }
-
-    if (type === 'all' || type === 'expense') {
-        const expenseGroup = document.createElement('optgroup');
-        expenseGroup.label = '💸 Expense Categories';
-        expenseCategories.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat.value;
-            option.textContent = cat.label;
-            expenseGroup.appendChild(option);
-        });
-        filterCategory.appendChild(expenseGroup);
-    }
-}
-
-// ... Modal Functions Same as Before ...
-
-function createTransactionModal() {
-    const modal = document.createElement('div');
-    modal.id = 'transactionModal';
-    modal.className = 'modal-overlay';
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalTitle">Add Transaction</h3>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
-            </div>
-            <form id="transactionForm">
-                <div class="form-group">
-                    <label for="txDate">Date</label>
-                    <input type="date" id="txDate" required>
-                </div>
-                <div class="form-group">
-                    <label for="txType">Type</label>
-                    <select id="txType" required>
-                        <option value="">Select Type</option>
-                        <option value="income">Income</option>
-                        <option value="expense">Expense</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="txCategory">Category</label>
-                    <select id="txCategory" required>
-                        <option value="">Select Type First</option>
-                    </select>
-                </div>
-                <div class="form-group" id="customCategoryGroup" style="display: none;">
-                    <label for="txCustomCategory">New Category Name</label>
-                    <input type="text" id="txCustomCategory" placeholder="Enter category name">
-                </div>
-                <div class="form-group">
-                    <label for="txDescriptionSelect">Subcategory</label>
-                    <select id="txDescriptionSelect" required>
-                        <option value="">Select Category First</option>
-                    </select>
-                </div>
-                <div class="form-group" id="customDescriptionGroup" style="display: none;">
-                    <label for="txCustomDescription">Custom Description</label>
-                    <input type="text" id="txCustomDescription" placeholder="Enter your custom description">
-                </div>
-                <div class="form-group">
-                    <label for="txAmount">Amount (₹)</label>
-                    <input type="number" id="txAmount" placeholder="Enter amount" min="0" step="0.01" required>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn-primary">Save</button>
-                </div>
-            </form>
-        </div>
-    `;
-    document.body.appendChild(modal);
-
-    document.getElementById('txType').addEventListener('change', function () {
-        updateModalCategories(this.value);
-        document.getElementById('txDescriptionSelect').innerHTML = '<option value="">Select Category First</option>';
-        document.getElementById('customDescriptionGroup').style.display = 'none';
-        document.getElementById('customCategoryGroup').style.display = 'none';
-    });
-
-    document.getElementById('txCategory').addEventListener('change', function () {
-        const customCategoryGroup = document.getElementById('customCategoryGroup');
-        const customCategoryInput = document.getElementById('txCustomCategory');
-        const subcategoryGroup = document.getElementById('txDescriptionSelect').parentElement;
-
-        if (this.value === '__add_category__') {
-            customCategoryGroup.style.display = 'block';
-            customCategoryInput.required = true;
-            customCategoryInput.focus();
-            subcategoryGroup.style.display = 'none';
-            document.getElementById('txDescriptionSelect').required = false;
-        } else {
-            customCategoryGroup.style.display = 'none';
-            customCategoryInput.required = false;
-            customCategoryInput.value = '';
-            subcategoryGroup.style.display = 'block';
-            document.getElementById('txDescriptionSelect').required = true;
-            updateDescriptionSuggestions(this.value, document.getElementById('txType').value);
-        }
-    });
-
-    document.getElementById('txDescriptionSelect').addEventListener('change', function () {
-        const customGroup = document.getElementById('customDescriptionGroup');
-        const customInput = document.getElementById('txCustomDescription');
-        const customLabel = document.querySelector('label[for="txCustomDescription"]');
-
-        if (this.value === '__custom__' || this.value === '__add_subcategory__') {
-            customGroup.style.display = 'block';
-            customInput.required = true;
-            if (this.value === '__add_subcategory__') {
-                customLabel.textContent = 'New Subcategory Name';
-                customInput.placeholder = 'Enter subcategory name';
-            } else {
-                customLabel.textContent = 'Custom Note';
-                customInput.placeholder = 'Enter your custom note';
-            }
-            customInput.focus();
-        } else {
-            customGroup.style.display = 'none';
-            customInput.required = false;
-            customInput.value = '';
-        }
-    });
-
-    document.getElementById('transactionForm').addEventListener('submit', handleFormSubmit);
-}
-
-function updateDescriptionSuggestions(category, type) {
-    const descSelect = document.getElementById('txDescriptionSelect');
-    const customGroup = document.getElementById('customDescriptionGroup');
-
-    descSelect.innerHTML = '<option value="">Select Subcategory</option>';
-    customGroup.style.display = 'none';
-
-    if (!category || category === '__add_category__') return;
-
-    const subcategories = type === 'income' ? incomeSubcategories[category] : categorySubcategories[category];
-
-    if (subcategories && subcategories.length > 0) {
-        subcategories.forEach(sub => {
-            const option = document.createElement('option');
-            if (sub.includes('Add Subcategory')) {
-                option.value = '__add_subcategory__';
-                option.textContent = sub;
-            } else {
-                option.value = sub;
-                option.textContent = sub;
-            }
-            descSelect.appendChild(option);
-        });
-    }
-
-    const separator = document.createElement('option');
-    separator.disabled = true;
-    separator.textContent = '──────────────';
-    descSelect.appendChild(separator);
-
-    const customOption = document.createElement('option');
-    customOption.value = '__custom__';
-    customOption.textContent = '✏️ Add Custom Note';
-    descSelect.appendChild(customOption);
-}
-
-function updateModalCategories(type) {
-    const categorySelect = document.getElementById('txCategory');
-    categorySelect.innerHTML = '<option value="">Select Category</option>';
-
-    const categories = type === 'income' ? incomeCategories : expenseCategories;
-    categories.forEach(cat => {
-        const option = document.createElement('option');
-        option.value = cat.value;
-        option.textContent = `${cat.icon} ${cat.label}`;
-        categorySelect.appendChild(option);
-    });
-}
-
-function showAddModal() {
-    editingId = null;
-    document.getElementById('modalTitle').textContent = 'Add Transaction';
-    document.getElementById('transactionForm').reset();
-    document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
-    document.getElementById('txCategory').innerHTML = '<option value="">Select Type First</option>';
-    document.getElementById('txDescriptionSelect').innerHTML = '<option value="">Select Category First</option>';
-    document.getElementById('customDescriptionGroup').style.display = 'none';
-    document.getElementById('txCustomDescription').value = '';
-    document.getElementById('transactionModal').classList.add('active');
-}
-
-function showEditModal(id) {
-    // Ensure we handle numeric or string IDs
-    const tx = transactions.find(t => String(t.id) === String(id));
-    if (!tx) return;
-
-    editingId = tx.id; // Store ID for update
-    document.getElementById('modalTitle').textContent = 'Edit Transaction';
-    document.getElementById('txDate').value = tx.date;
-    document.getElementById('txType').value = tx.type;
-    updateModalCategories(tx.type);
-    document.getElementById('txCategory').value = tx.category;
-
-    updateDescriptionSuggestions(tx.category, tx.type);
-
-    const descSelect = document.getElementById('txDescriptionSelect');
-    const subcategories = tx.type === 'income' ? incomeSubcategories[tx.category] : categorySubcategories[tx.category];
-
-    if (subcategories && subcategories.includes(tx.description)) {
-        descSelect.value = tx.description;
-        document.getElementById('customDescriptionGroup').style.display = 'none';
+    if (navType === 'reload' || navType === 'back_forward') {
+        const savedYear = localStorage.getItem('selectedTransactionYear');
+        const savedMonth = localStorage.getItem('selectedTransactionMonth');
+        currentYear = savedYear ? parseInt(savedYear) : new Date().getFullYear();
+        currentMonth = savedMonth ? parseInt(savedMonth) : new Date().getMonth() + 1;
     } else {
-        descSelect.value = '__custom__';
-        document.getElementById('customDescriptionGroup').style.display = 'block';
-        document.getElementById('txCustomDescription').value = tx.description;
-        document.getElementById('txCustomDescription').required = true;
+        const today = new Date();
+        currentYear = today.getFullYear();
+        currentMonth = today.getMonth() + 1;
+        // Update storage
+        localStorage.setItem('selectedTransactionYear', currentYear);
+        localStorage.setItem('selectedTransactionMonth', currentMonth);
     }
+    let currentUser = null;
 
-    document.getElementById('txAmount').value = tx.amount;
-    document.getElementById('transactionModal').classList.add('active');
-}
+    // Data Storage
+    let monthTransactions = []; // All tx for the month
+    let allCategories = [];
+    let allItems = [];
+    let allTypes = []; // [{id: 'type-1', name: 'Income'}, ...]
 
-function closeModal() {
-    document.getElementById('transactionModal').classList.remove('active');
-    document.getElementById('customDescriptionGroup').style.display = 'none';
-    document.getElementById('txCustomDescription').required = false;
-    editingId = null;
-}
+    // Filter State
+    let activeTypeFilters = ['expense', 'income', 'investment']; // Default all
+    let activeCategoryFilter = '';
+    let activeItemFilter = '';
 
-async function handleFormSubmit(e) {
-    e.preventDefault();
+    // Editing State
+    let editingId = null; // ID of transaction currently being edited inline
 
-    const date = document.getElementById('txDate').value;
-    const type = document.getElementById('txType').value;
-    const category = document.getElementById('txCategory').value;
-    const amount = parseFloat(document.getElementById('txAmount').value);
+    // Constants for Type Mapping (DB IDs vs String Keys)
+    let DB_TYPE_ID_MAP = {}; // { 'type-1': 'income', 'type-2': 'expense', ... }
 
-    // Get description
-    const descSelect = document.getElementById('txDescriptionSelect').value;
-    let description;
-    if (descSelect === '__custom__' || descSelect === '__add_subcategory__') {
-        description = document.getElementById('txCustomDescription').value;
-    } else {
-        description = descSelect;
-    }
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', initTransactionsPage);
 
-    const txData = {
-        userId: currentUser.id,
-        date,
-        description,
-        type,
-        category,
-        amount
-    };
-
-    try {
-        if (editingId) {
-            // UPDATE existing
-            const response = await fetch(`${API_URL}/${editingId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(txData)
-            });
-            if (!response.ok) throw new Error('Failed to update transaction');
-        } else {
-            // CREATE new
-            // Provide a string ID if needed, or let json-server handle it.
-            // json-server auto-generates IDs if not provided, but we want unique IDs.
-            // Best to let json-server handle ID generation, but 'id' field conflict might occur if we mixed types.
-            // We will let json-server generate ID.
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(txData)
-            });
-            if (!response.ok) throw new Error('Failed to create transaction');
+    async function initTransactionsPage() {
+        // 1. Auth Check
+        const userStr = localStorage.getItem('user');
+        if (!userStr) {
+            window.location.href = '../auth/login.html';
+            return;
         }
+        currentUser = JSON.parse(userStr);
 
-        closeModal();
-        fetchTransactions(); // Refresh list
+        // 3. Setup Event Listeners
+        setupEventListeners();
 
-    } catch (error) {
-        console.error("Error saving transaction:", error);
-        alert("Failed to save transaction. Please check the server.");
+        // 4. Initial Data Load (Types -> Categories -> Items -> Transactions)
+        await loadMetadata();
+
+        // 5. Setup UI Components
+        initMonthPicker();
+        initFormDatePicker(); // Initialize Flatpickr for Form
+        updateMonthDisplay();
+
+        // 6. Load Transactions
+        loadTransactions();
     }
-}
 
-async function deleteTransaction(id) {
-    if (confirm('Are you sure you want to delete this transaction?')) {
+    // --- Data Loading ---
+
+    function getAuthHeaders() {
+        const token = localStorage.getItem('token');
+        return token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+    }
+
+    async function loadMetadata() {
         try {
-            const response = await fetch(`${API_URL}/${id}`, {
-                method: 'DELETE'
+            // Types
+            const typesRes = await fetch(`${API_BASE}/types`, { headers: getAuthHeaders() });
+            allTypes = await typesRes.json();
+
+            DB_TYPE_ID_MAP = {};
+            allTypes.forEach(t => {
+                const lowerName = t.name.toLowerCase();
+                if (lowerName.includes('income')) DB_TYPE_ID_MAP[t.id] = 'income';
+                else if (lowerName.includes('invest')) DB_TYPE_ID_MAP[t.id] = 'investment';
+                else DB_TYPE_ID_MAP[t.id] = 'expense';
             });
-            if (!response.ok) throw new Error('Failed to delete transaction');
-            fetchTransactions();
+
+            // Categories
+            const catRes = await fetch(`${API_BASE}/categories`, { headers: getAuthHeaders() });
+            allCategories = await catRes.json();
+
+            // Items
+            const itemsRes = await fetch(`${API_BASE}/items`, { headers: getAuthHeaders() });
+            allItems = await itemsRes.json();
+
+            // Filters
+            populateFilterCategoryDropdown();
+            updateFilterItemOptions(null, activeTypeFilters);
+
+            // Add Form
+            updateFormCategoryOptions('expense');
+
         } catch (error) {
-            console.error("Error deleting transaction:", error);
-            alert("Failed to delete transaction.");
+            console.error('Failed to load metadata:', error);
+            alert('Failed to load necessary data. Please check server connection.');
         }
     }
-}
 
-function renderTransactions() {
-    const tbody = document.querySelector('.transactions-table tbody');
-    if (!tbody) return;
+    async function loadTransactions() {
+        if (!currentUser) return;
 
-    const filterType = document.getElementById('filterType')?.value || 'all';
-    const filterCategory = document.getElementById('filterCategory')?.value || 'all';
+        const startDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+        const lastDay = new Date(currentYear, currentMonth, 0).getDate();
+        const endDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${lastDay}`;
 
-    let filtered = transactions;
+        try {
+            const url = `${API_BASE}/transactions?userId=${currentUser.id}&date_gte=${startDate}&date_lte=${endDate}&_sort=date&_order=desc`;
+            const res = await fetch(url, { headers: getAuthHeaders() });
+            monthTransactions = await res.json();
 
-    if (filterType !== 'all') {
-        filtered = filtered.filter(t => t.type === filterType);
+            renderTransactions();
+        } catch (error) {
+            console.error('Error loading transactions:', error);
+        }
     }
-    if (filterCategory !== 'all') {
-        filtered = filtered.filter(t => t.category === filterCategory);
+
+    // --- UI Logic ---
+
+    function setupEventListeners() {
+        // Month Navigation
+        document.getElementById('prev-month').addEventListener('click', () => changeMonth(-1));
+        document.getElementById('next-month').addEventListener('click', () => changeMonth(1));
+
+        // Filters
+        document.getElementById('filter-type').addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (val === 'all') {
+                activeTypeFilters = ['expense', 'income', 'investment'];
+            } else {
+                activeTypeFilters = [val];
+            }
+
+            activeCategoryFilter = "";
+            activeItemFilter = "";
+            document.getElementById('filter-category').value = "";
+            document.getElementById('filter-item').value = "";
+
+            updateFilterCategoryOptions();
+            updateFilterItemOptions(null, activeTypeFilters);
+            renderTransactions();
+        });
+
+        document.getElementById('filter-category').addEventListener('change', (e) => {
+            activeCategoryFilter = e.target.value;
+            activeItemFilter = "";
+            document.getElementById('filter-item').value = "";
+            updateFilterItemOptions(activeCategoryFilter, activeTypeFilters);
+            renderTransactions();
+        });
+
+        document.getElementById('filter-item').addEventListener('change', (e) => {
+            activeItemFilter = e.target.value;
+            renderTransactions();
+        });
+
+        document.getElementById('clear-filters-btn').addEventListener('click', () => {
+            document.getElementById('filter-type').value = 'all';
+            activeTypeFilters = ['expense', 'income', 'investment'];
+            document.getElementById('filter-category').value = "";
+            activeCategoryFilter = "";
+            document.getElementById('filter-item').value = "";
+            activeItemFilter = "";
+
+            updateFilterCategoryOptions();
+            updateFilterItemOptions(null, activeTypeFilters);
+            renderTransactions();
+        });
+
+        // Add Form Events
+        document.getElementById('tx-type').addEventListener('change', (e) => {
+            updateFormCategoryOptions(e.target.value);
+        });
+        document.getElementById('tx-category').addEventListener('change', (e) => {
+            updateFormItemOptions(e.target.value);
+        });
+        // Date change is handled by flatpickr config 
+        // removed tx-date change listener
+
+        // Add Form Submit (Create Only)
+        document.getElementById('transaction-form').addEventListener('submit', handleAddSubmit);
+
+        // Reset Button
+        document.getElementById('reset-btn').addEventListener('click', handleResetForm);
     }
 
-    // Sort by date (newest first)
-    filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    function handleResetForm() {
+        document.getElementById('transaction-form').reset();
 
-    if (filtered.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" style="text-align: center; padding: 40px; color: #718096;">
-                    No transactions found. Click "Add Transaction" to get started.
-                </td>
-            </tr>
+        // Set defaults
+        document.getElementById('tx-type').value = 'expense';
+        updateFormCategoryOptions('expense');
+
+        // Reset Date constraints/value
+        updateFormDateConstraints();
+    }
+
+    function initFormDatePicker() {
+        if (typeof flatpickr !== 'undefined') {
+            flatpickr("#tx-date", {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                theme: "material_blue",
+                defaultDate: new Date()
+            });
+        }
+    }
+
+    function initMonthPicker() {
+        if (typeof flatpickr !== 'undefined') {
+            const fp = flatpickr("#month-picker", {
+                plugins: [new monthSelectPlugin({ shorthand: true, dateFormat: "Y-m-d", altFormat: "F Y", theme: "material_blue" })],
+                onChange: function (selectedDates) {
+                    if (selectedDates.length > 0) {
+                        currentYear = selectedDates[0].getFullYear();
+                        currentMonth = selectedDates[0].getMonth() + 1;
+
+                        // Save State
+                        localStorage.setItem('selectedTransactionYear', currentYear);
+                        localStorage.setItem('selectedTransactionMonth', currentMonth);
+
+                        updateMonthDisplay();
+                        loadTransactions();
+                    }
+                }
+            });
+            document.getElementById('calendar-icon-trigger').addEventListener('click', () => fp.toggle());
+        }
+    }
+
+    function changeMonth(delta) {
+        currentMonth += delta;
+        if (currentMonth > 12) { currentMonth = 1; currentYear++; }
+        else if (currentMonth < 1) { currentMonth = 12; currentYear--; }
+
+        // Save State
+        localStorage.setItem('selectedTransactionYear', currentYear);
+        localStorage.setItem('selectedTransactionMonth', currentMonth);
+
+        updateMonthDisplay();
+        loadTransactions();
+    }
+
+    function updateMonthDisplay() {
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        document.getElementById('current-month').textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
+        updateFormDateConstraints();
+    }
+
+    function updateFormDateConstraints() {
+        const dateInput = document.getElementById('tx-date');
+
+        const lastDay = new Date(currentYear, currentMonth, 0).getDate();
+        const min = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+        const max = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${lastDay}`;
+
+        // Update default date if needed, but don't restrict range
+        if (dateInput._flatpickr) {
+            // Remove constraints if any
+            dateInput._flatpickr.set('minDate', undefined);
+            dateInput._flatpickr.set('maxDate', undefined);
+
+            // Smart Default Date: Try to match "Today's Day" (e.g. 2nd), clamped to month end
+            const today = new Date();
+            const targetDay = Math.min(today.getDate(), lastDay);
+            const defaultDateStr = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`;
+
+            dateInput._flatpickr.setDate(defaultDateStr);
+        }
+    }
+
+    function validateDate(input) {
+        const date = new Date(input.value);
+        if (isNaN(date.getTime())) return;
+        if (date.getFullYear() !== currentYear || (date.getMonth() + 1) !== currentMonth) {
+            alert(`Please select a date within ${document.getElementById('current-month').textContent}`);
+            input.value = input.min;
+        }
+    }
+
+    // --- Helpers ---
+
+    function getTypeId(logicalType) {
+        return Object.keys(DB_TYPE_ID_MAP).find(id => DB_TYPE_ID_MAP[id] === logicalType);
+    }
+
+    function getLogicalType(id) {
+        return DB_TYPE_ID_MAP[id] || 'expense';
+    }
+
+    function updateFormCategoryOptions(logicalType) {
+        const catSelect = document.getElementById('tx-category');
+        const itemSelect = document.getElementById('tx-item');
+
+        catSelect.innerHTML = '<option value="" disabled selected>Select Category</option>';
+        itemSelect.innerHTML = '<option value="" disabled selected>Select Item</option>';
+        itemSelect.disabled = true;
+
+        const typeId = getTypeId(logicalType);
+        if (!typeId) return;
+
+        const filteredCats = allCategories.filter(c => c.type_id == typeId || c.typeId == typeId);
+        filteredCats.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.id;
+            opt.textContent = `${cat.icon || '📦'} ${cat.name}`;
+            catSelect.appendChild(opt);
+        });
+
+        // Color coding Amount
+        const amtInput = document.getElementById('tx-amount');
+        amtInput.classList.remove('amount-expense', 'amount-income', 'amount-investment');
+        amtInput.classList.add(`amount-${logicalType}`);
+
+        // Button Color
+        const btn = document.getElementById('add-btn');
+        if (logicalType === 'income') btn.style.background = '#16a34a';
+        else if (logicalType === 'investment') btn.style.background = '#2563eb';
+        else btn.style.background = '#ef4444';
+    }
+
+    function updateFormItemOptions(categoryId) {
+        const itemSelect = document.getElementById('tx-item');
+        itemSelect.innerHTML = '<option value="" disabled selected>Select Item</option>';
+        if (!categoryId) { itemSelect.disabled = true; return; }
+
+        const filteredItems = allItems.filter(i => i.category_id == categoryId || i.categoryId == categoryId);
+        if (filteredItems.length === 0) {
+            const opt = document.createElement('option');
+            opt.textContent = "No predefined items";
+            opt.disabled = true;
+            itemSelect.appendChild(opt);
+            itemSelect.disabled = true;
+        } else {
+            itemSelect.disabled = false;
+            filteredItems.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.name;
+                itemSelect.appendChild(opt);
+            });
+        }
+    }
+
+    function populateFilterCategoryDropdown() {
+        updateFilterCategoryOptions();
+    }
+
+    function updateFilterCategoryOptions() {
+        const select = document.getElementById('filter-category');
+        select.innerHTML = '<option value="">All Categories</option>';
+        activeTypeFilters.forEach(type => {
+            const tId = getTypeId(type);
+            if (!tId) return;
+            const cats = allCategories.filter(c => c.type_id == tId || c.typeId == tId);
+            if (cats.length > 0) {
+                const group = document.createElement('optgroup');
+                group.label = type.charAt(0).toUpperCase() + type.slice(1);
+                cats.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = `${c.icon || '📦'} ${c.name}`;
+                    group.appendChild(opt);
+                });
+                select.appendChild(group);
+            }
+        });
+    }
+
+    function updateFilterItemOptions(selectedCategoryId, activeTypes) {
+        const itemSelect = document.getElementById('filter-item');
+        itemSelect.innerHTML = '<option value="">All Items</option>';
+
+        const isAllTypes = activeTypes.length > 1;
+        const hasCategory = !!selectedCategoryId;
+        if (isAllTypes && !hasCategory) { itemSelect.disabled = true; return; }
+
+        let validCategoryIds = [];
+        if (selectedCategoryId) {
+            validCategoryIds = [selectedCategoryId.toString()];
+        } else {
+            const activeTypeIds = activeTypes.map(t => getTypeId(t)).filter(Boolean);
+            validCategoryIds = allCategories
+                .filter(c => activeTypeIds.includes(String(c.type_id || c.typeId)))
+                .map(c => c.id.toString());
+        }
+
+        const filteredItems = allItems.filter(i => validCategoryIds.includes(String(i.category_id || i.categoryId)));
+        if (filteredItems.length === 0) { itemSelect.disabled = true; return; }
+        itemSelect.disabled = false;
+        filteredItems.sort((a, b) => a.name.localeCompare(b.name));
+
+        const catMap = {};
+        allCategories.forEach(c => catMap[c.id] = c.name);
+        const grouped = {};
+        filteredItems.forEach(item => {
+            const catName = catMap[item.category_id || item.categoryId] || 'Unknown';
+            if (!grouped[catName]) grouped[catName] = [];
+            grouped[catName].push(item);
+        });
+
+        Object.keys(grouped).sort().forEach(catName => {
+            const group = document.createElement('optgroup');
+            group.label = catName;
+            grouped[catName].forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = item.name;
+                group.appendChild(opt);
+            });
+            itemSelect.appendChild(group);
+        });
+    }
+
+    // --- CRUD ---
+
+    async function handleAddSubmit(e) {
+        e.preventDefault();
+        if (!currentUser) return;
+        // Collect Form Data
+        const type = document.getElementById('tx-type').value;
+        const categoryId = document.getElementById('tx-category').value;
+        const itemId = document.getElementById('tx-item').value;
+        const date = document.getElementById('tx-date').value;
+        const description = document.getElementById('tx-notes').value;
+        const amount = parseFloat(document.getElementById('tx-amount').value);
+
+        if (!categoryId || !date || isNaN(amount)) { alert('Please fill required fields'); return; }
+
+        const payload = {
+            userId: currentUser.id, type, date, amount, description,
+            category_id: categoryId, item_id: itemId || null
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/transactions`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                // Reset form
+                document.getElementById('transaction-form').reset();
+                document.getElementById('tx-type').value = 'expense';
+                updateFormCategoryOptions('expense');
+                updateFormDateConstraints();
+
+                loadTransactions();
+            } else { alert('Failed to save'); }
+        } catch (error) { console.error('Error:', error); alert('Error saving transaction'); }
+    }
+
+    async function saveInlineEdit(id) {
+        const row = document.querySelector(`tr[data-id="${id}"]`);
+        if (!row) return;
+
+        // Note: For flatpickr, the input value is usually updated correctly if altInput is used
+        const date = row.querySelector('.edit-date').value; // Contains YYYY-MM-DD from flatpickr
+        const type = row.querySelector('.edit-type').value;
+        const categoryId = row.querySelector('.edit-category').value;
+        const itemId = row.querySelector('.edit-item').value;
+        const description = row.querySelector('.edit-notes').value;
+        const amount = parseFloat(row.querySelector('.edit-amount').value);
+
+        if (!categoryId || !date || isNaN(amount)) { alert('Please fill required fields'); return; }
+
+        const payload = {
+            userId: currentUser.id, type, date, amount, description,
+            category_id: categoryId, item_id: itemId || null
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/transactions/${id}`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                editingId = null;
+                loadTransactions();
+            } else { alert('Failed to update'); }
+        } catch (e) { console.error(e); alert('Update failed'); }
+    }
+
+    async function deleteTransaction(id) {
+        if (!confirm("Delete this transaction?")) return;
+        try {
+            const res = await fetch(`${API_BASE}/transactions/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+            if (res.ok) loadTransactions();
+            else alert('Failed to delete');
+        } catch (error) { console.error('Delete error:', error); }
+    }
+
+    function startEdit(tx) {
+        editingId = tx.id;
+        renderTransactions();
+    }
+
+    function cancelEdit() {
+        editingId = null;
+        renderTransactions();
+    }
+
+    // --- Rendering ---
+
+    function renderTransactions() {
+        const tbody = document.getElementById('transactions-body');
+        const emptyMonth = document.getElementById('empty-state-month');
+        const emptyFilter = document.getElementById('empty-state-filter');
+        const table = document.querySelector('.transactions-table');
+
+        tbody.innerHTML = '';
+
+        let displayList = monthTransactions;
+
+        // Apply Filters
+        const filtered = displayList.filter(tx => {
+            let txType = (tx.type || '').toLowerCase();
+            if (!txType && tx.type_id) txType = DB_TYPE_ID_MAP[tx.type_id] || 'expense';
+            if (!txType) txType = 'expense';
+
+            if (!activeTypeFilters.includes(txType)) return false;
+            if (activeCategoryFilter && String(tx.category_id || tx.categoryId) !== activeCategoryFilter) return false;
+            if (activeItemFilter && String(tx.item_id || tx.itemId) !== activeItemFilter) return false;
+            return true;
+        });
+
+        if (monthTransactions.length === 0) {
+            table.style.display = 'none';
+            emptyMonth.style.display = 'flex';
+            emptyFilter.style.display = 'none';
+            return;
+        }
+
+        if (filtered.length === 0) {
+            table.style.display = 'none';
+            emptyMonth.style.display = 'none';
+            emptyFilter.style.display = 'flex';
+            return;
+        }
+
+        table.style.display = 'table';
+        emptyMonth.style.display = 'none';
+        emptyFilter.style.display = 'none';
+
+        filtered.forEach(tx => {
+            if (tx.id === editingId) {
+                renderInlineEditRow(tbody, tx);
+            } else {
+                renderReadOnlyRow(tbody, tx);
+            }
+        });
+    }
+
+    function renderReadOnlyRow(tbody, tx) {
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-id', tx.id);
+
+        const d = new Date(tx.date);
+        const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+
+        const catId = tx.category_id || tx.categoryId;
+        const cat = allCategories.find(c => c.id == catId) || { name: 'Unknown', icon: '❓' };
+
+        const itemId = tx.item_id || tx.itemId;
+        const item = allItems.find(i => i.id == itemId) || { name: '—' };
+
+        let type = (tx.type || '').toLowerCase();
+        if (!type && tx.type_id) type = DB_TYPE_ID_MAP[tx.type_id] || 'expense';
+        if (!type) type = 'expense';
+
+        const amountFormatted = parseFloat(tx.amount).toLocaleString('en-IN', { style: 'currency', currency: 'INR' }).replace('₹', '');
+
+        tr.innerHTML = `
+            <td>${dateStr}</td>
+            <td><span class="type-pill ${type}">${type}</span></td>
+            <td>
+                <div class="cat-cell">
+                    <span class="cat-icon">${cat.icon || '📦'}</span>
+                    <span>${cat.name}</span>
+                </div>
+            </td>
+            <td>${item.name}</td>
+            <td style="color: #64748b; font-size: 13px;">${tx.description || '—'}</td>
+            <td class="amount-${type}">₹ ${amountFormatted}</td>
+            <td class="actions-col">
+                <div class="action-buttons">
+                    <button class="action-btn edit" title="Edit">✏️</button>
+                    <button class="action-btn delete" title="Delete">🗑️</button>
+                </div>
+            </td>
         `;
-        return;
+
+        tr.querySelector('.edit').addEventListener('click', () => startEdit(tx));
+        tr.querySelector('.delete').addEventListener('click', () => deleteTransaction(tx.id));
+        tbody.appendChild(tr);
     }
 
-    tbody.innerHTML = filtered.map(tx => {
-        const catInfo = getCategoryInfo(tx.category, tx.type);
-        const formattedDate = formatDate(tx.date);
-        const formattedAmount = formatCurrency(tx.amount);
-        // Ensure ID is passed as string to avoid JS big integer issues if any
-        const safeId = String(tx.id);
+    function renderInlineEditRow(tbody, tx) {
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-id', tx.id);
+        tr.classList.add('editing-row');
 
-        return `
-            <tr data-id="${safeId}">
-                <td>${formattedDate}</td>
-                <td>${tx.description}</td>
-                <td><span class="category-badge ${tx.type}">${catInfo.icon} ${catInfo.label}</span></td>
-                <td><span class="type-badge type-${tx.type}">${tx.type === 'income' ? 'Income' : 'Expense'}</span></td>
-                <td class="amount-${tx.type}">${tx.type === 'income' ? '+' : '-'} ${formattedAmount}</td>
-                <td class="actions-cell">
-                    <button class="btn-icon btn-edit" onclick="showEditModal('${safeId}')">✏️</button>
-                    <button class="btn-icon btn-delete" onclick="deleteTransaction('${safeId}')">🗑️</button>
-                </td>
-            </tr>
+        // Current Values
+        let type = (tx.type || '').toLowerCase();
+        if (!type && tx.type_id) type = DB_TYPE_ID_MAP[tx.type_id] || 'expense';
+        if (!type) type = 'expense';
+        const catId = tx.category_id || tx.categoryId;
+        const itemId = tx.item_id || tx.itemId;
+
+        // Note: Input type='text' for Flatpickr compatibility
+        tr.innerHTML = `
+            <td><input type="text" class="inline-edit-input edit-date" value="${tx.date}" style="width: 120px;"></td>
+            <td>
+                 <select class="inline-select edit-type">
+                    <option value="expense" ${type === 'expense' ? 'selected' : ''}>Expense</option>
+                    <option value="income" ${type === 'income' ? 'selected' : ''}>Income</option>
+                    <option value="investment" ${type === 'investment' ? 'selected' : ''}>Investment</option>
+                 </select>
+            </td>
+            <td>
+                <select class="inline-select edit-category" style="width: 140px;">
+                    <!-- Populated via JS -->
+                </select>
+            </td>
+            <td>
+                <select class="inline-select edit-item" style="width: 140px;">
+                    <option value="">Select Item</option>
+                </select>
+            </td>
+            <td><input type="text" class="inline-edit-input edit-notes" value="${tx.description || ''}" placeholder="Notes"></td>
+            <td><input type="number" class="inline-edit-input edit-amount" value="${tx.amount}" step="0.01" style="width: 80px;"></td>
+            <td class="actions-col">
+                <div class="action-buttons">
+                    <button class="action-btn save-btn" title="Save">✔</button>
+                    <button class="action-btn cancel-btn" title="Cancel">✖</button>
+                </div>
+            </td>
         `;
-    }).join('');
-}
 
-function getCategoryInfo(categoryValue, type) {
-    const allCategories = type === 'income' ? incomeCategories : expenseCategories;
-    const cat = allCategories.find(c => c.value === categoryValue);
-    return cat || { label: categoryValue, icon: '📦' };
-}
+        tbody.appendChild(tr);
 
-function formatDate(dateStr) {
-    const date = new Date(dateStr);
-    const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
-    // Basic date formatting relative to settings, defaulting to readable string if complexity high
-    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-}
+        // Attach Listeners for this row
+        const typeSelect = tr.querySelector('.edit-type');
+        const catSelect = tr.querySelector('.edit-category');
+        const itemSelect = tr.querySelector('.edit-item');
+        const dateInput = tr.querySelector('.edit-date');
+        const saveBtn = tr.querySelector('.save-btn');
+        const cancelBtn = tr.querySelector('.cancel-btn');
 
-function formatCurrency(amount) {
-    // Reusing the global formatCurrency if available, else fallback
-    if (window.formatCurrency) {
-        return window.formatCurrency(amount);
+        // Initialize Flatpickr for date
+        if (typeof flatpickr !== 'undefined') {
+            flatpickr(dateInput, {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d M Y",
+                displayFormat: "d M Y", // sometimes used depending on version
+                defaultDate: tx.date || "today",
+                theme: "material_blue"
+            });
+        }
+
+        // Initial Populations
+        populateInlineCategory(catSelect, typeSelect.value, catId);
+        populateInlineItem(itemSelect, catSelect.value, itemId);
+
+        // Events
+        typeSelect.addEventListener('change', () => {
+            populateInlineCategory(catSelect, typeSelect.value, null);
+            populateInlineItem(itemSelect, catSelect.value, null);
+        });
+
+        catSelect.addEventListener('change', () => {
+            populateInlineItem(itemSelect, catSelect.value, null);
+        });
+
+        saveBtn.addEventListener('click', () => saveInlineEdit(tx.id));
+        cancelBtn.addEventListener('click', cancelEdit);
     }
-    return `₹ ${amount.toLocaleString('en-IN')}`;
-}
 
-function attachActionHandlers() {
-    // Handled inline
-}
+    function populateInlineCategory(select, logicalType, selectedId) {
+        select.innerHTML = '<option value="" disabled selected>Select</option>';
+        const typeId = getTypeId(logicalType);
+        if (!typeId) return;
 
-function filterTransactions() {
-    renderTransactions();
-}
+        const cats = allCategories.filter(c => c.type_id == typeId || c.typeId == typeId);
+        cats.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            if (String(c.id) === String(selectedId)) opt.selected = true;
+            select.appendChild(opt);
+        });
 
-window.showEditModal = showEditModal;
-window.deleteTransaction = deleteTransaction;
-window.closeModal = closeModal;
+        // If existing selection not found (mismatched type), reset
+        if (selectedId && !select.value) select.value = "";
+    }
+
+    function populateInlineItem(select, categoryId, selectedId) {
+        select.innerHTML = '<option value="">Select Item</option>';
+        if (!categoryId) { select.disabled = true; return; }
+        select.disabled = false;
+
+        const items = allItems.filter(i => i.category_id == categoryId || i.categoryId == categoryId);
+        items.forEach(i => {
+            const opt = document.createElement('option');
+            opt.value = i.id;
+            opt.textContent = i.name;
+            if (String(i.id) === String(selectedId)) opt.selected = true;
+            select.appendChild(opt);
+        });
+    }
+
+})();

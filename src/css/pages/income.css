@@ -154,6 +154,14 @@
     grid-column: 1 / -1;
 }
 
+.span-2 {
+    grid-column: span 2;
+}
+
+.span-3 {
+    grid-column: span 3;
+}
+
 /* --- Form Components Standardization --- */
 .form-group select,
 .form-group input,
@@ -171,6 +179,46 @@
     box-sizing: border-box;
     display: block;
     font-family: 'Inter', sans-serif;
+}
+
+/* ... (existing code) ... */
+
+/* ... form-actions-centered ... */
+.form-actions-centered {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 12px;
+}
+
+/* New Inline Actions */
+.form-actions-inline-end {
+    /* grid-column handled by inline classes */
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-top: 29px;
+    /* Align with input box, skipping label space */
+}
+
+.form-actions-inline-end .btn {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 12px;
+}
+
+/* Specific Button Sizing */
+.form-actions-inline-end #save-income-btn {
+    flex: 1.5;
+}
+
+.form-actions-inline-end #reset-form-btn {
+    flex: 1;
 }
 
 /* Specific fix for textarea behaving as single line input */

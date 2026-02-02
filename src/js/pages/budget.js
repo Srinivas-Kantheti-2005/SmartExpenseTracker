@@ -8,8 +8,25 @@ console.log('Budget.js loaded');
     const BUDGET_API_BASE = 'http://localhost:3004'; // MUST include /api per app.js
 
     // State
-    let currentMonth = new Date().getMonth() + 1;
-    let currentYear = new Date().getFullYear();
+    const navEntry = performance.getEntriesByType("navigation")[0];
+    const navType = navEntry ? navEntry.type : 'navigate';
+
+    let currentMonth, currentYear;
+
+    if (navType === 'reload' || navType === 'back_forward') {
+        const savedYear = localStorage.getItem('selectedBudgetYear');
+        const savedMonth = localStorage.getItem('selectedBudgetMonth');
+        currentMonth = savedMonth ? parseInt(savedMonth) : new Date().getMonth() + 1;
+        currentYear = savedYear ? parseInt(savedYear) : new Date().getFullYear();
+    } else {
+        // Reset to Current Date on fresh navigation
+        const today = new Date();
+        currentMonth = today.getMonth() + 1;
+        currentYear = today.getFullYear();
+        // Update storage to reflect reset
+        localStorage.setItem('selectedBudgetYear', currentYear);
+        localStorage.setItem('selectedBudgetMonth', currentMonth);
+    }
     let monthBudgets = [];
     let allCategories = [];
     let allItems = []; // All items
@@ -55,6 +72,8 @@ console.log('Budget.js loaded');
         saveBtn = document.getElementById('save-budget-btn');
         cancelBtn = document.getElementById('cancel-edit-btn');
 
+        // Date state already initialized at top
+
         setupEventListeners();
 
         // 1. Load Categories FIRST
@@ -94,6 +113,11 @@ console.log('Budget.js loaded');
                         const date = selectedDates[0];
                         currentYear = date.getFullYear();
                         currentMonth = date.getMonth() + 1;
+
+                        // Save State
+                        localStorage.setItem('selectedBudgetYear', currentYear);
+                        localStorage.setItem('selectedBudgetMonth', currentMonth);
+
                         updateMonthDisplay();
                         loadBudgets();
                     }
@@ -132,6 +156,12 @@ console.log('Budget.js loaded');
             currentMonth = 12;
             currentYear--;
         }
+
+
+        // Save State
+        localStorage.setItem('selectedBudgetYear', currentYear);
+        localStorage.setItem('selectedBudgetMonth', currentMonth);
+
         updateMonthDisplay();
         loadBudgets();
         resetForm();
@@ -307,7 +337,7 @@ console.log('Budget.js loaded');
 
         if (monthBudgets.length === 0) {
             table.style.display = 'none';
-            emptyState.style.display = 'block';
+            emptyState.style.display = 'flex'; // Use flex to maintain centering
             return;
         }
 

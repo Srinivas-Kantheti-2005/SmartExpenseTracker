@@ -33,6 +33,20 @@
     /* Hidden as per user request */
 }
 
+/* --- Empty State --- */
+.empty-state {
+    height: 100%;
+    min-height: 350px;
+    /* Force minimum height for centering */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    text-align: center;
+    padding: 20px;
+}
+
 /* Add Budget Button (Footer) */
 .add-budget-btn {
     display: flex;
@@ -67,9 +81,11 @@
     grid-template-columns: 1fr 1.5fr;
     /* Balanced width ratio */
     gap: 30px;
-    align-items: stretch;
-    /* Stretch columns to equal height */
+    align-items: start;
+    /* Prevent stretching, adhere to content height */
 }
+
+
 
 /* Left Column Wrapper */
 .budget-controls {
@@ -260,6 +276,11 @@
 }
 
 /* --- Right Column: Budget List --- */
+.budget-list-section {
+    height: 100%;
+    /* Ensure section fills grid cell */
+}
+
 .budget-list-card {
     background: white;
     border-radius: 16px;
@@ -290,9 +311,8 @@
 
 /* --- Table Styles --- */
 .budget-table-container {
-    flex: 1;
-    max-height: 420px;
-    /* Adjusted to fit 5+ rows comfortably */
+    height: 440px;
+    /* Fixed height for ~7 rows visible space */
     overflow-y: auto;
 }
 
@@ -310,7 +330,7 @@
 .budget-table th {
     background: #f8fafc;
     text-align: left;
-    padding: 18px 24px;
+    padding: 12px 24px;
     /* Reduced vertical padding */
     font-size: 13px;
     font-weight: 600;
@@ -321,7 +341,7 @@
 }
 
 .budget-table td {
-    padding: 18px 24px;
+    padding: 12px 24px;
     /* Reduced vertical padding */
     border-bottom: 1px solid #f1f5f9;
     color: #334155;

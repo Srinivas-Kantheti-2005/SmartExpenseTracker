@@ -8,11 +8,25 @@ console.log('Investments.js loaded');
     const API_BASE = 'http://localhost:3004'; // Standard API Base
 
     // State
-    const savedYear = localStorage.getItem('selectedInvestmentYear');
-    const savedMonth = localStorage.getItem('selectedInvestmentMonth');
+    // State
+    const navEntry = performance.getEntriesByType("navigation")[0];
+    const navType = navEntry ? navEntry.type : 'navigate';
 
-    let currentYear = savedYear ? parseInt(savedYear) : new Date().getFullYear();
-    let currentMonth = savedMonth ? parseInt(savedMonth) : new Date().getMonth() + 1;
+    let currentYear, currentMonth;
+
+    if (navType === 'reload' || navType === 'back_forward') {
+        const savedYear = localStorage.getItem('selectedInvestmentYear');
+        const savedMonth = localStorage.getItem('selectedInvestmentMonth');
+        currentYear = savedYear ? parseInt(savedYear) : new Date().getFullYear();
+        currentMonth = savedMonth ? parseInt(savedMonth) : new Date().getMonth() + 1;
+    } else {
+        const today = new Date();
+        currentYear = today.getFullYear();
+        currentMonth = today.getMonth() + 1;
+        // Update storage
+        localStorage.setItem('selectedInvestmentYear', currentYear);
+        localStorage.setItem('selectedInvestmentMonth', currentMonth);
+    }
     let monthInvestments = [];
     let allCategories = [];
     let allItems = [];

@@ -9,11 +9,24 @@ console.log('Income.js loaded');
 
     // State
     // State
-    const savedYear = localStorage.getItem('selectedIncomeYear');
-    const savedMonth = localStorage.getItem('selectedIncomeMonth');
+    const navEntry = performance.getEntriesByType("navigation")[0];
+    const navType = navEntry ? navEntry.type : 'navigate';
 
-    let currentYear = savedYear ? parseInt(savedYear) : new Date().getFullYear();
-    let currentMonth = savedMonth ? parseInt(savedMonth) : new Date().getMonth() + 1;
+    let currentYear, currentMonth;
+
+    if (navType === 'reload' || navType === 'back_forward') {
+        const savedYear = localStorage.getItem('selectedIncomeYear');
+        const savedMonth = localStorage.getItem('selectedIncomeMonth');
+        currentYear = savedYear ? parseInt(savedYear) : new Date().getFullYear();
+        currentMonth = savedMonth ? parseInt(savedMonth) : new Date().getMonth() + 1;
+    } else {
+        const today = new Date();
+        currentYear = today.getFullYear();
+        currentMonth = today.getMonth() + 1;
+        // Update storage
+        localStorage.setItem('selectedIncomeYear', currentYear);
+        localStorage.setItem('selectedIncomeMonth', currentMonth);
+    }
     let monthIncomes = [];
     let allCategories = [];
     let allItems = [];
@@ -662,7 +675,7 @@ console.log('Income.js loaded');
                 </td>
                 <td>${itemName}</td>
                 <td style="color: #64748b; font-size: 13px;">${inc.description || '—'}</td>
-                <td class="amount-positive">+ ₹ ${Number(inc.amount).toLocaleString()}</td>
+                <td class="amount-positive">₹ ${Number(inc.amount).toLocaleString()}</td>
                 <td style="text-align: right;">
                     <div class="action-buttons">
                         <button class="btn-icon edit-btn" title="Edit">✏️</button>

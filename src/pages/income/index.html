@@ -133,7 +133,7 @@
                 <!-- Middle Row: Income List -->
                 <div class="income-list-card">
                     <div class="card-header">
-                        <h3>Income List</h3>
+                        <h3>Monthly Income</h3>
                     </div>
                     <div class="income-table-container">
                         <table class="income-table">
@@ -192,17 +192,16 @@
                                 <input type="number" id="income-amount" placeholder="₹ 0" min="1" required>
                             </div>
 
-                            <!-- Row 2: Description (Full Width) -->
-                            <div class="form-group span-full">
+                            <!-- Row 2: Description (Span 3) & Buttons (Rest) -->
+                            <div class="form-group span-3">
                                 <label for="income-note">Description</label>
                                 <textarea id="income-note" placeholder="Optional notes" rows="1"
                                     class="single-line-input"></textarea>
                             </div>
 
-                            <!-- Row 3: Buttons (Centered) -->
-                            <div class="form-actions-centered">
-                                <button type="button" id="reset-form-btn" class="btn btn-reset">Reset</button>
+                            <div class="form-actions-inline-end">
                                 <button type="submit" id="save-income-btn" class="btn btn-primary">Add Income</button>
+                                <button type="button" id="reset-form-btn" class="btn btn-reset">Reset</button>
                             </div>
                         </div>
                     </form>
