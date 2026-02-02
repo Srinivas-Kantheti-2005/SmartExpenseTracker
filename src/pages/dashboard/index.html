@@ -58,7 +58,6 @@
     <!-- ... (rest of the file) ... -->
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../../js/utils/date-update.js"></script>
     <script src="../../js/utils/header-utils.js"></script>
     <script src="../../js/pages/settings.js"></script>
     <script src="../../js/pages/dashboard.js"></script>
@@ -102,112 +101,90 @@
      Main Content
 ======================= -->
 <main class="main-content">
+    <div class="page-container">
+        <!-- Dashboard Internal Header -->
+        <div class="dashboard-header-card">
+            <div class="header-left">
+                <h1>Dashboard</h1>
+                <p class="tagline">Track your income, expenses, and investments in one place</p>
+            </div>
+            <div class="header-right">
+                <div class="month-selector-card">
+                    <button id="prev-month" class="month-nav-btn">‹</button>
+                    <div class="date-display-container" id="date-display-trigger" style="cursor: pointer;">
+                        <span class="calendar-icon">🗓️</span>
+                        <span id="current-month-text" class="current-month-text">February 2026</span>
 
-    <!-- =======================
-         Summary Cards Row
-    ======================== -->
-    <section class="summary-cards">
-        <div class="card" id="income-card">
-            <div class="card-header">
-                <span class="card-icon">💰</span>
-                <h4>Monthly Income</h4>
-            </div>
-            <div class="card-amount">
-                <p>₹ 0</p>
-            </div>
-        </div>
-        <div class="card" id="expense-card">
-            <div class="card-header">
-                <span class="card-icon">💸</span>
-                <h4>Monthly Expense</h4>
-            </div>
-            <div class="card-amount">
-                <p>₹ 0</p>
-            </div>
-        </div>
-        <div class="card" id="investment-card">
-            <div class="card-header">
-                <span class="card-icon">📈</span>
-                <h4>Monthly Investments</h4>
-            </div>
-            <div class="card-amount">
-                <p>₹ 0</p>
-            </div>
-        </div>
-        <div class="card" id="balance-card">
-            <div class="card-header">
-                <span class="card-icon">💵</span>
-                <h4>Monthly Balance</h4>
-            </div>
-            <div class="card-amount">
-                <p>₹ 0</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- =======================
-         Content Row (Donut Chart + Expense List)
-    ======================== -->
-    <div class="content-row">
-
-        <!-- Category-wise Expense Donut Chart -->
-        <section class="category-expense-chart">
-            <div class="card chart-card">
-                <h3>Category-wise Expenses</h3>
-
-                <div class="donut-chart-wrapper">
-                    <div class="donut-chart">
-                        <canvas id="categoryExpenseDonut"></canvas>
+                        <!-- Custom Month Picker Modal -->
+                        <div class="custom-month-picker" id="month-picker-modal">
+                            <div class="picker-header">
+                                <button type="button" id="picker-prev-year">‹</button>
+                                <span id="picker-year-display" style="cursor: pointer;" title="Select Year">2026</span>
+                                <button type="button" id="picker-next-year">›</button>
+                            </div>
+                            <div class="months-grid" id="months-grid">
+                                <!-- Months will be injected by JS -->
+                            </div>
+                        </div>
                     </div>
+                    <button id="next-month" class="month-nav-btn">›</button>
+                </div>
+            </div>
+        </div>
 
-                    <!-- Category Legend -->
-                    <div class="legend">
-                        <div class="legend-item">
-                            <div class="legend-color" style="background:#FF6B6B"></div><span>EMIs</span>
+        <!-- Row 1: Summary Cards -->
+        <div class="summary-cards-grid">
+            <div class="summary-card income" id="income-summary-card">
+                <span class="card-title">Monthly Income</span>
+                <span class="card-amount">₹ 0</span>
+            </div>
+            <div class="summary-card expense" id="expense-summary-card">
+                <span class="card-title">Monthly Expense</span>
+                <span class="card-amount">₹ 0</span>
+            </div>
+            <div class="summary-card investment" id="investment-summary-card">
+                <span class="card-title">Monthly Investment</span>
+                <span class="card-amount">₹ 0</span>
+            </div>
+            <div class="summary-card balance" id="balance-summary-card">
+                <span class="card-title">Monthly Balance</span>
+                <span class="card-amount">₹ 0</span>
+            </div>
+        </div>
+
+        <!-- Row 2: Split Layout -->
+        <div class="dashboard-main-grid">
+            <!-- Expense Breakdown Card -->
+            <div class="dashboard-card breakdown-card">
+                <div class="card-header">
+                    <h3>Expense Breakdown</h3>
+                </div>
+                <div class="chart-content">
+                    <div class="chart-wrapper">
+                        <canvas id="expenseDonutChart"></canvas>
+                        <div class="donut-center-info">
+                            <span class="total-spent-amount">₹ 0</span>
+                            <span class="total-spent-label">Spent</span>
                         </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background:#FFA94D"></div><span>Bills &
-                                Utilities</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background:#FFD93D"></div><span>Groceries</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background:#6BCB77"></div><span>Healthcare</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background:#FF7F50"></div><span>Transport</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background:#9B5DE5"></div><span>Subscriptions</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background:#FFCA3A"></div><span>Personal</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background:#FF85A1"></div><span>Shopping</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background:#9CA3AF"></div><span>Others</span>
-                        </div>
+                    </div>
+                    <div class="chart-legend" id="chart-legend">
+                        <!-- Legend items injected by JS -->
                     </div>
                 </div>
             </div>
-        </section>
 
-        <!-- Category-wise Expense List -->
-        <section class="expense-list-section">
-            <div class="card expense-list-card">
-                <h3>Today's Expenses</h3>
-
-                <div class="expense-list">
-                    <!-- Dynamically rendered by JavaScript, sorted by highest amount -->
+            <!-- Recent Transactions Card -->
+            <div class="dashboard-card recent-tx-card">
+                <div class="card-header">
+                    <h3>Recent Transactions</h3>
+                    <a href="../transactions/index.html" id="view-all-tx" class="view-all-link">View all →</a>
+                </div>
+                <div class="recent-tx-list" id="recent-transactions-list">
+                    <!-- Transactions injected by JS -->
                 </div>
             </div>
-        </section>
-
+        </div>
     </div>
-
 </main>
 
 <!-- =======================

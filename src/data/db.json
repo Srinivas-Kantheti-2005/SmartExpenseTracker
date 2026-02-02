@@ -782,6 +782,16 @@
       "category_id": "6acdf8ee-cbab-4416-adee-4e139a3f584e",
       "item_id": "7f7b9257-2e03-4f00-b027-81de2f9741b7",
       "id": 28
+    },
+    {
+      "userId": "158f519d-06f6-4c0a-9e5d-0469a9e827ac",
+      "type": "income",
+      "category_id": "238ecdc6-643d-4628-b201-83cdecf7bac5",
+      "item_id": "c19138d3-5a82-4c6b-ab27-87baac551a45",
+      "date": "2026-02-23",
+      "amount": 15000,
+      "description": "UI design for web application",
+      "id": 29
     }
   ],
   "budgets": [

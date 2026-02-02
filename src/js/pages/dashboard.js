@@ -1,261 +1,244 @@
-// =======================
-// Dashboard JS – Expense Donut Chart
-// =======================
+/**
+ * Dashboard JavaScript
+ * Handles data fetching, month selection, and visualization for the Smart Expense Tracker.
+ */
 
-// =======================
-// Auto Updating Date
-// =======================
+// ---------- CONFIG & STATE ----------
+const API_BASE = "http://localhost:3004";
+const CATEGORY_COLORS = {
+    'Food & Dining': '#3b82f6',     // Blue
+    'Shopping': '#f59e0b',          // Orange
+    'Transport': '#8b5cf6',         // Purple
+    'Bills & Utilities': '#ec4899', // Pink
+    'Health & Medical': '#10b981',  // Green
+    'Entertainment': '#f43f5e',     // Rose/Red
+    'Others': '#94a3b8'             // Grey
+};
 
-function updateDateUI() {
-    const now = new Date();
+let allTransactions = [];
+let categories = [];
+let items = [];
 
-    const dayNames = [
-        "Sunday", "Monday", "Tuesday",
-        "Wednesday", "Thursday", "Friday", "Saturday"
-    ];
+let dashboardData = {
+    selectedDate: new Date(), // Current month/year
+    summary: {
+        income: 0,
+        expense: 0,
+        investment: 0,
+        balance: 0
+    },
+    categoryExpenses: {}, // For donut chart
+    recentTransactions: []
+};
 
-    const monthNames = [
-        "January", "February", "March", "April",
-        "May", "June", "July", "August",
-        "September", "October", "November", "December"
-    ];
+let expenseDonutChart = null;
 
-    const dayEl = document.querySelector(".day");
-    const dateEl = document.querySelector(".date-no");
-    const monthEl = document.querySelector(".month");
-    const yearEl = document.querySelector(".year");
+// ---------- INIT ----------
+document.addEventListener('DOMContentLoaded', () => {
+    initDashboard();
+});
 
-    if (!dayEl || !dateEl || !monthEl || !yearEl) return;
+async function initDashboard() {
+    // Determine if we should load from localStorage or reset
+    const navType = performance.getEntriesByType("navigation")[0]?.type;
 
-    dayEl.textContent = dayNames[now.getDay()];
-    dateEl.textContent = String(now.getDate()).padStart(2, "0");
-    monthEl.textContent = monthNames[now.getMonth()];
-    yearEl.textContent = now.getFullYear();
+    if (navType === 'reload') {
+        const savedYear = localStorage.getItem('dashboardYear');
+        const savedMonth = localStorage.getItem('dashboardMonth');
+        if (savedYear !== null && savedMonth !== null) {
+            dashboardData.selectedDate.setFullYear(parseInt(savedYear));
+            dashboardData.selectedDate.setMonth(parseInt(savedMonth));
+            console.log("Dashboard reloaded: Restored date", dashboardData.selectedDate);
+        }
+    } else {
+        // Fresh navigate from sidebar or other pages -> Reset to current month
+        dashboardData.selectedDate = new Date();
+        localStorage.setItem('dashboardYear', dashboardData.selectedDate.getFullYear());
+        localStorage.setItem('dashboardMonth', dashboardData.selectedDate.getMonth());
+        console.log("Dashboard fresh navigation: Reset to today");
+    }
+
+    setupMonthSelector();
+    await loadData();
+    setupNavigation();
 }
 
-// Run once when page loads
-updateDateUI();
-
-// Calculate milliseconds until next midnight
-function msUntilMidnight() {
-    const now = new Date();
-    const midnight = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate() + 1, // next day
-        0, 0, 0, 0
-    );
-    return midnight - now;
-}
-
-// Update exactly at midnight, then every 24 hours
-setTimeout(() => {
-    updateDateUI();
-    setInterval(updateDateUI, 24 * 60 * 60 * 1000);
-}, msUntilMidnight());
-
-// User Profile Update is handled by header-utils.js
-
-
-// ---------- STATE MANAGEMENT ----------
-let transactions = [];
-let totalIncome = 0;
-let totalExpense = 0;
-let investments = 0;
-let balance = 0;
-let categoryExpenses = {};
-
-const DB_TRANSACTIONS_URL = "http://localhost:3004/transactions";
-
-// ---------- FETCH DATA ----------
-async function loadDashboardData() {
+// ---------- DATA LOADING & PROCESSING ----------
+async function loadData() {
     try {
-        const response = await fetch(DB_TRANSACTIONS_URL);
-        if (!response.ok) throw new Error("Failed to fetch data");
+        const [txRes, catRes, itemRes] = await Promise.all([
+            fetch(`${API_BASE}/transactions`),
+            fetch(`${API_BASE}/categories`),
+            fetch(`${API_BASE}/items`)
+        ]);
 
-        transactions = await response.json();
-        processData();
-        updateSummaryCards();
-        renderChart();
-        renderTodayExpenses();
+        if (!txRes.ok || !catRes.ok || !itemRes.ok) throw new Error("Failed to fetch data");
+
+        allTransactions = await txRes.json();
+        categories = await catRes.json();
+        items = await itemRes.json();
+
+        processDashboardData();
     } catch (error) {
         console.error("Error loading dashboard data:", error);
     }
 }
 
-// Process raw transactions into totals and category breakdown
-function processData() {
-    // Reset totals
-    totalIncome = 0;
-    totalExpense = 0;
-    investments = 0;
-    categoryExpenses = {};
+function processDashboardData() {
+    const selectedMonth = dashboardData.selectedDate.getMonth();
+    const selectedYear = dashboardData.selectedDate.getFullYear();
 
-    transactions.forEach(tx => {
+    // Map for quick lookup
+    const catMap = {};
+    categories.forEach(c => catMap[c.id] = { name: c.name, icon: c.icon });
+    const itemMap = {};
+    items.forEach(i => itemMap[i.id] = i.name);
+
+    // Filter transactions for the selected month and year
+    const monthlyTransactions = allTransactions.filter(tx => {
+        const txDate = new Date(tx.date);
+        return txDate.getMonth() === selectedMonth && txDate.getFullYear() === selectedYear;
+    });
+
+    // Reset summary
+    dashboardData.summary = { income: 0, expense: 0, investment: 0, balance: 0 };
+    dashboardData.categoryExpenses = {};
+
+    monthlyTransactions.forEach(tx => {
         const amount = Number(tx.amount);
+        const catData = catMap[tx.category_id] || { name: tx.category || 'Others', icon: '📦' };
+        const itemName = itemMap[tx.item_id] || tx.item || '—';
+
+        // Attach names for easier rendering later
+        tx.categoryName = catData.name;
+        tx.categoryIcon = catData.icon;
+        tx.itemName = itemName;
 
         if (tx.type === 'income') {
-            totalIncome += amount;
+            dashboardData.summary.income += amount;
         } else if (tx.type === 'expense') {
-            totalExpense += amount;
-
-            // Add to category total
-            const cat = tx.category || 'Others'; // normalized key
-            // Map backend category keys to display labels using existing map if possible
-            let displayLabel = "Others";
-
-            // Simple reverse lookup or normalization could go here. 
-            // For now, we aggregate by the raw category key and will map it during chart render.
-
-            // We'll trust the category key from the DB matches our keys roughly
-            if (categoryExpenses[tx.category]) {
-                categoryExpenses[tx.category] += amount;
-            } else {
-                categoryExpenses[tx.category] = amount;
-            }
+            dashboardData.summary.expense += amount;
+            // Group by category for donut
+            dashboardData.categoryExpenses[tx.categoryName] = (dashboardData.categoryExpenses[tx.categoryName] || 0) + amount;
         } else if (tx.type === 'investment') {
-            investments += amount;
+            dashboardData.summary.investment += amount;
         }
     });
 
-    balance = totalIncome - totalExpense - investments;
+    dashboardData.summary.balance = dashboardData.summary.income - dashboardData.summary.expense - dashboardData.summary.investment;
+
+    // Get recent 5 transactions for this month (newest first)
+    dashboardData.recentTransactions = [...monthlyTransactions]
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 5);
+
+    updateUI();
 }
 
-// ---------- CHART DATA PREPARATION ----------
-// We need to map the dynamic categoryExpenses object to the labels/data arrays expected by Chart.js
-function getChartData() {
-    // Standardize keys to match our colorMap
-    // Note: In a real app, we'd have a stronger category management system.
-    // For this refactor, we attempt to map the DB category keys to our display labels.
-
-    // In db.json, categories might be "food", "transport" etc.
-    // We map them to "Food & Dining", "Transport" etc for the chart.
-
-    const displayData = {};
-
-    Object.keys(categoryExpenses).forEach(key => {
-        // Find matching mapping or default
-        const mapEntry = categoryMapping[key];
-        const label = mapEntry ? mapEntry.label : key; // Fallback to key if no map found
-
-        if (displayData[label]) {
-            displayData[label] += categoryExpenses[key];
-        } else {
-            displayData[label] = categoryExpenses[key];
-        }
-    });
-
-    return {
-        labels: Object.keys(displayData),
-        data: Object.values(displayData)
-    };
+// ---------- UI UPDATES ----------
+function updateUI() {
+    updateSummaryCards();
+    updateDonutChart();
+    renderRecentTransactions();
 }
 
+function updateSummaryCards() {
+    document.querySelector('#income-summary-card .card-amount').textContent = formatCurrency(dashboardData.summary.income);
+    document.querySelector('#expense-summary-card .card-amount').textContent = formatCurrency(dashboardData.summary.expense);
+    document.querySelector('#investment-summary-card .card-amount').textContent = formatCurrency(dashboardData.summary.investment);
+    document.querySelector('#balance-summary-card .card-amount').textContent = formatCurrency(dashboardData.summary.balance);
+}
 
-const colorMap = {
-    "Food & Dining": "#FF6B6B",
-    "Transport": "#FF7F50",
-    "Housing": "#8B5CF6",
-    "Bills & Utilities": "#FFA94D",
-    "Shopping": "#FF85A1",
-    "Health & Medical": "#6BCB77",
-    "Education": "#3B82F6",
-    "Entertainment": "#EC4899",
-    "Personal Care": "#FFCA3A",
-    "Travel": "#14B8A6",
-    "Gifts & Donations": "#F472B6",
-    "EMI / Loans": "#EF4444",
-    "Others": "#9CA3AF"
-};
+function updateDonutChart() {
+    const canvas = document.getElementById('expenseDonutChart');
+    const chartContent = document.querySelector('.chart-content');
+    const breakdownCard = document.querySelector('.breakdown-card');
+    if (!canvas || !chartContent || !breakdownCard) return;
 
-// Default budget for now
-const monthlyBudget = 50000;
-let budgetPercentage = 0;
+    const ctx = canvas.getContext('2d');
+    const categories = Object.keys(dashboardData.categoryExpenses);
+    const amounts = Object.values(dashboardData.categoryExpenses);
+    const totalExpense = dashboardData.summary.expense;
 
-// ---------- CENTER TEXT + HOVER ----------
-let centerHovered = false;
+    // Check for existing empty state and remove it
+    const existingEmpty = breakdownCard.querySelector('.chart-empty-state');
+    if (existingEmpty) existingEmpty.remove();
 
-const centerTextPlugin = {
-    id: "centerText",
-    beforeDraw(chart) {
-        const { ctx, width, height } = chart;
-
-        ctx.save();
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        ctx.fillStyle = centerHovered ? "#e63946" : "#000";
-
-        if (centerHovered) {
-            ctx.font = "bold 16px Arial";
-            ctx.fillText(
-                `₹${totalExpense.toLocaleString()} used`,
-                width / 2,
-                height / 2 - 10
-            );
-
-            ctx.font = "bold 12px Arial";
-            if (budgetPercentage !== null) {
-                ctx.fillText(
-                    `${budgetPercentage}% of budget`,
-                    width / 2,
-                    height / 2 + 12
-                );
-            }
-        } else {
-            ctx.font = "bold 16px Arial";
-            ctx.fillText(
-                `₹${totalExpense.toLocaleString()}`,
-                width / 2,
-                height / 2 - 8
-            );
-            ctx.font = "11px Arial";
-            ctx.fillText(
-                "used",
-                width / 2,
-                height / 2 + 10
-            );
-        }
-
-        ctx.restore();
+    if (totalExpense === 0 || categories.length === 0) {
+        chartContent.style.display = 'none';
+        const emptyState = document.createElement('div');
+        emptyState.className = 'chart-empty-state';
+        emptyState.innerHTML = `
+            <span class="empty-icon-large">📭</span>
+            <span class="empty-text-desc">No expenses recorded\nfor this month</span>
+        `;
+        breakdownCard.appendChild(emptyState);
+        return;
     }
-};
 
-// ---------- INIT CHART ----------
-const canvas = document.getElementById("categoryExpenseDonut");
+    chartContent.style.display = 'flex';
+    // Center text update
+    document.querySelector('.total-spent-amount').textContent = formatCurrency(totalExpense);
 
-if (canvas) {
-    const ctx = canvas.getContext("2d");
+    const chartColors = categories.map(cat => CATEGORY_COLORS[cat] || CATEGORY_COLORS['Others']);
 
-    // Recalculate chart data
-    const chartData = getChartData();
-    const backgroundColors = chartData.labels.map(l => colorMap[l] || "#9CA3AF");
+    if (expenseDonutChart) {
+        expenseDonutChart.destroy();
+    }
 
-    // Update budget percentage
-    budgetPercentage = monthlyBudget > 0 ? Math.round((totalExpense / monthlyBudget) * 100) : 0;
-
-    const donutChart = new Chart(ctx, {
-        type: "doughnut",
+    expenseDonutChart = new Chart(ctx, {
+        type: 'doughnut',
         data: {
-            labels: chartData.labels,
+            labels: categories,
             datasets: [{
-                data: chartData.data,
-                backgroundColor: backgroundColors,
+                data: amounts,
+                backgroundColor: chartColors,
                 borderWidth: 0,
-                hoverOffset: 10
+                hoverOffset: 30
             }]
         },
-        plugins: [centerTextPlugin],
         options: {
+            cutout: '70%', // Increased width of the donut
             responsive: true,
-            cutout: "65%",
+            maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
                 tooltip: {
+                    position: 'nearest',
+                    displayColors: true,
+                    mode: 'nearest',
+                    intersect: true,
+                    yAlign: 'bottom',
+                    xAlign: 'center',
+                    boxWidth: 10,
+                    boxHeight: 10,
+                    boxBorderWidth: 0,
+                    usePointStyle: false,
+                    backgroundColor: 'rgba(0, 0, 0, 1)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    bodyFont: {
+                        size: 14,
+                        weight: '600'
+                    },
+                    padding: 12,
+                    cornerRadius: 8,
+                    caretPadding: 0, // Positioner handles spacing
+                    caretSize: 6,
                     callbacks: {
-                        label(context) {
-                            const percentage = Math.round((context.raw / totalExpense) * 100);
-                            return `${context.label}: ₹${context.raw.toLocaleString()} (${percentage}%)`;
+                        title: () => '',
+                        label: (context) => {
+                            const percent = ((context.raw / totalExpense) * 100).toFixed(1);
+                            return ` ${context.label}: ${formatCurrency(context.raw)} (${percent}%)`;
+                        },
+                        labelColor: (context) => {
+                            const color = context.dataset.backgroundColor[context.dataIndex];
+                            return {
+                                borderColor: color,
+                                backgroundColor: color,
+                                borderWidth: 0,
+                                borderRadius: 3
+                            };
                         }
                     }
                 }
@@ -263,175 +246,250 @@ if (canvas) {
         }
     });
 
-    // Function to re-render chart explicitly if needed
-    function renderChart() {
-        if (!canvas) return;
+    // Render custom legend
+    const legendData = categories.map((cat) => ({
+        name: cat,
+        percent: ((dashboardData.categoryExpenses[cat] / totalExpense) * 100).toFixed(1),
+        color: CATEGORY_COLORS[cat] || CATEGORY_COLORS['Others']
+    })).sort((a, b) => b.percent - a.percent);
 
-        const chartData = getChartData();
-        const backgroundColors = chartData.labels.map(l => colorMap[l] || "#9CA3AF");
-
-        const chartInstance = Chart.getChart(canvas);
-        if (chartInstance) {
-            chartInstance.data.labels = chartData.labels;
-            chartInstance.data.datasets[0].data = chartData.data;
-            chartInstance.data.datasets[0].backgroundColor = backgroundColors;
-            chartInstance.update();
-        }
-    }
-
-
-    // ---------- CENTER HOVER DETECTION ----------
-    canvas.addEventListener("mousemove", (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const dx = x - donutChart.width / 2;
-        const dy = y - donutChart.height / 2;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        const innerRadius =
-            donutChart.getDatasetMeta(0).data[0].innerRadius;
-
-        const prev = centerHovered;
-        centerHovered = distance < innerRadius;
-
-        if (prev !== centerHovered) {
-            donutChart.options.cutout = centerHovered ? "60%" : "65%";
-            donutChart.update();
-        }
-    });
-
-    canvas.addEventListener("mouseleave", () => {
-        centerHovered = false;
-        donutChart.options.cutout = "65%";
-        donutChart.update();
-    });
+    renderLegend(legendData);
 }
 
-// =======================
-// Render Today's Expense Breakdown
-// =======================
+function renderLegend(legendData) {
+    const legendContainer = document.getElementById('chart-legend');
+    if (!legendContainer) return;
 
-// Category mapping from transaction value to display info
-const categoryMapping = {
-    'emis': { label: 'EMI / Loans', icon: '🏦' },
-    'bills': { label: 'Bills & Utilities', icon: '💡' },
-    'groceries': { label: 'Food & Dining', icon: '🍽️' },
-    'healthcare': { label: 'Health & Medical', icon: '🏥' },
-    'transport': { label: 'Transport', icon: '🚗' },
-    'housing': { label: 'Housing', icon: '🏠' },
-    'shopping': { label: 'Shopping', icon: '🛍️' },
-    'education': { label: 'Education', icon: '📚' },
-    'entertainment': { label: 'Entertainment', icon: '🎬' },
-    'personal': { label: 'Personal Care', icon: '💅' },
-    'travel': { label: 'Travel', icon: '✈️' },
-    'gifts': { label: 'Gifts & Donations', icon: '🎁' },
-    'others': { label: 'Others', icon: '📦' }
-};
-
-// Get today's date in YYYY-MM-DD format
-function getTodayDate() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-
-// Format currency based on settings
-function formatCurrency(amount) {
-    const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
-    const currency = settings.currency || 'inr';
-
-    const symbols = {
-        inr: '₹',
-        usd: '$',
-        eur: '€',
-        gbp: '£'
-    };
-
-    const symbol = symbols[currency] || '₹';
-    return `${symbol} ${amount.toLocaleString('en-IN')}`;
-}
-
-// Load and render today's expenses
-function renderTodayExpenses() {
-    const expenseListContainer = document.querySelector(".expense-list");
-    if (!expenseListContainer) return;
-
-    // Data is already loaded in 'transactions' variable by loadDashboardData()
-    // but renderTodayExpenses might fail if called before loadDashboardData() finishes.
-    // So we use the global transactions array which should be populated.
-
-    // If empty (maybe first load), we don't need sample data anymore as we have a real DB.
-
-    // Get today's date
-    const today = getTodayDate();
-
-    // Filter for today's expenses only
-    const todayExpenses = transactions.filter(tx =>
-        tx.date === today && tx.type === 'expense'
-    );
-
-    // Sort by amount (highest first)
-    todayExpenses.sort((a, b) => b.amount - a.amount);
-
-    if (todayExpenses.length === 0) {
-        expenseListContainer.innerHTML = `
-            <div class="expense-empty">
-                <span class="empty-icon">📭</span>
-                <p>No expenses recorded today</p>
-                <span class="empty-hint">Add transactions to see them here</span>
-            </div>
-        `;
+    if (legendData.length === 0) {
+        legendContainer.innerHTML = '<p style="text-align: center; color: #94a3b8; font-size: 13px; margin-top: 20px;">No expenses this month</p>';
         return;
     }
 
-    expenseListContainer.innerHTML = todayExpenses.map(tx => {
-        const catInfo = categoryMapping[tx.category] || { label: tx.category, icon: '📦' };
-        // Use subcategory if available, otherwise fall back to description
-        const subcategory = tx.subcategory || tx.description || '';
-        // Use note if available
-        const note = tx.note || '';
-        return `
-            <div class="expense-item">
-                <span class="category-icon">${catInfo.icon}</span>
-                <div class="category-info">
-                    <span class="category-name">${catInfo.label}</span>
-                    <span class="subcategory-name">${subcategory}</span>
-                </div>
-                <span class="expense-note">${note}</span>
-                <span class="category-amount expense">${formatCurrency(tx.amount)}</span>
+    legendContainer.innerHTML = legendData.map(item => `
+        <div class="legend-item">
+            <div class="legend-left">
+                <span class="status-dot" style="background: ${item.color}"></span>
+                <span class="category-name-text">${item.name}</span>
             </div>
-        `;
-    }).join("");
+            <span class="legend-percent">${item.percent}%</span>
+        </div>
+    `).join('');
 }
 
-// Initial Render (will be empty specific charts, wait for fetch)
-renderTodayExpenses();
+function renderRecentTransactions() {
+    const listContainer = document.getElementById('recent-transactions-list');
+    if (!listContainer) return;
 
-// Start Data Load
-loadDashboardData();
+    if (dashboardData.recentTransactions.length === 0) {
+        listContainer.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 40px; font-weight: 500;">No transactions found for this month.</p>';
+        return;
+    }
 
-// =======================
-// Logout Button Logic & User Profile
-// Handled by src/js/utils/header-utils.js
-// =======================
-
-// =======================
-// Update summary cards
-// =======================
-function updateSummaryCards() {
-    const monthlyIncome = totalIncome;
-    const monthlyExpense = totalExpense;
-    const monthlyInvestments = investments;
-    const monthlyBalance = balance;
-
-    document.getElementById("income-card").querySelector("p").textContent = `₹ ${monthlyIncome.toLocaleString()}`;
-    document.getElementById("expense-card").querySelector("p").textContent = `₹ ${monthlyExpense.toLocaleString()}`;
-    document.getElementById("investment-card").querySelector("p").textContent = `₹ ${monthlyInvestments.toLocaleString()}`;
-    document.getElementById("balance-card").querySelector("p").textContent = `₹ ${monthlyBalance.toLocaleString()}`;
+    listContainer.innerHTML = dashboardData.recentTransactions.map(tx => `
+        <div class="recent-tx-row" onclick="navigateToTransactions('${tx.type}')">
+            <div class="tx-main-info">
+                <span class="tx-date">${formatDateSmall(tx.date)}</span>
+                <span class="tx-category">${tx.categoryName}</span>
+                <span class="tx-item">${tx.itemName}</span>
+            </div>
+            <span class="tx-amount-v2 ${tx.type}">${formatCurrency(tx.amount)}</span>
+        </div>
+    `).join('');
 }
 
-// updateSummaryCards(); // Called inside loadDashboardData
+// ---------- MONTH SELECTOR (Custom Modal) ----------
+function setupMonthSelector() {
+    const monthText = document.getElementById('current-month-text');
+    const prevBtn = document.getElementById('prev-month');
+    const nextBtn = document.getElementById('next-month');
+    const trigger = document.getElementById('date-display-trigger');
+    const modal = document.getElementById('month-picker-modal');
+    const yearDisplay = document.getElementById('picker-year-display');
+    const prevYearBtn = document.getElementById('picker-prev-year');
+    const nextYearBtn = document.getElementById('picker-next-year');
+    const monthsGrid = document.getElementById('months-grid');
+
+    let pickerYear = dashboardData.selectedDate.getFullYear();
+    let isYearView = false;
+
+    const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const updateDisplay = () => {
+        const options = { month: 'long', year: 'numeric' };
+        monthText.textContent = dashboardData.selectedDate.toLocaleDateString('en-US', options);
+
+        // Save to localStorage
+        localStorage.setItem('dashboardYear', dashboardData.selectedDate.getFullYear());
+        localStorage.setItem('dashboardMonth', dashboardData.selectedDate.getMonth());
+
+        processDashboardData();
+    };
+
+    const renderPicker = () => {
+        yearDisplay.textContent = pickerYear;
+
+        if (isYearView) {
+            // Render 12 years around the current pickerYear
+            const startYear = pickerYear - 5;
+            let yearsHtml = '';
+            for (let i = 0; i < 12; i++) {
+                const year = startYear + i;
+                const isActive = year === dashboardData.selectedDate.getFullYear();
+                yearsHtml += `<button type="button" class="year-btn ${isActive ? 'active' : ''}" data-year="${year}">${year}</button>`;
+            }
+            monthsGrid.className = 'years-grid';
+            monthsGrid.innerHTML = yearsHtml;
+            prevYearBtn.textContent = '«'; // Double arrow for faster nav in year view
+            nextYearBtn.textContent = '»';
+        } else {
+            monthsGrid.className = 'months-grid';
+            monthsGrid.innerHTML = monthNamesShort.map((month, index) => {
+                const isActive = pickerYear === dashboardData.selectedDate.getFullYear() && index === dashboardData.selectedDate.getMonth();
+                return `<button type="button" class="month-btn ${isActive ? 'active' : ''}" data-month="${index}">${month}</button>`;
+            }).join('');
+            prevYearBtn.textContent = '‹';
+            nextYearBtn.textContent = '›';
+        }
+    };
+
+    // Toggle Modal
+    if (trigger) {
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            modal.classList.toggle('active');
+            if (modal.classList.contains('active')) {
+                pickerYear = dashboardData.selectedDate.getFullYear();
+                isYearView = false;
+                renderPicker();
+            }
+        });
+    }
+
+    // Switch between Month and Year view
+    if (yearDisplay) {
+        yearDisplay.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isYearView = !isYearView;
+            renderPicker();
+        });
+    }
+
+    // Close Modal on click outside
+    document.addEventListener('click', (e) => {
+        if (modal && !modal.contains(e.target) && !trigger.contains(e.target)) {
+            modal.classList.remove('active');
+        }
+    });
+
+    // Year Navigation
+    if (prevYearBtn) {
+        prevYearBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isYearView) {
+                pickerYear -= 12; // Jump 12 years
+            } else {
+                pickerYear--;
+            }
+            renderPicker();
+        });
+    }
+
+    if (nextYearBtn) {
+        nextYearBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isYearView) {
+                pickerYear += 12; // Jump 12 years
+            } else {
+                pickerYear++;
+            }
+            renderPicker();
+        });
+    }
+
+    // Selection Handling
+    if (monthsGrid) {
+        monthsGrid.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (e.target.classList.contains('month-btn')) {
+                const monthIndex = parseInt(e.target.dataset.month);
+                dashboardData.selectedDate.setFullYear(pickerYear);
+                dashboardData.selectedDate.setMonth(monthIndex);
+                updateDisplay();
+                modal.classList.remove('active');
+            } else if (e.target.classList.contains('year-btn')) {
+                pickerYear = parseInt(e.target.dataset.year);
+                isYearView = false; // Switch back to month view
+                renderPicker();
+            }
+        });
+    }
+
+    // Main navigation buttons (‹ ›)
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            dashboardData.selectedDate.setMonth(dashboardData.selectedDate.getMonth() - 1);
+            updateDisplay();
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            dashboardData.selectedDate.setMonth(dashboardData.selectedDate.getMonth() + 1);
+            updateDisplay();
+        });
+    }
+
+    // Initial display
+    updateDisplay();
+}
+
+// ---------- NAVIGATION ----------
+function setupNavigation() {
+    const cards = [
+        { id: 'income-summary-card', type: 'income' },
+        { id: 'expense-summary-card', type: 'expense' },
+        { id: 'investment-summary-card', type: 'investment' },
+        { id: 'balance-summary-card', type: 'all' }
+    ];
+
+    cards.forEach(card => {
+        const el = document.getElementById(card.id);
+        if (el) {
+            el.addEventListener('click', () => {
+                window.navigateToTransactions(card.type);
+            });
+        }
+    });
+
+    const viewAll = document.getElementById('view-all-tx');
+    if (viewAll) {
+        viewAll.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.navigateToTransactions('all');
+        });
+    }
+}
+
+// Exposed to window for onclick handlers
+window.navigateToTransactions = function (type) {
+    const month = dashboardData.selectedDate.getMonth() + 1;
+    const year = dashboardData.selectedDate.getFullYear();
+    const formattedMonth = `${year}-${String(month).padStart(2, '0')}`;
+
+    // Pass filters via URL parameters
+    const params = new URLSearchParams();
+    if (type !== 'all') params.append('type', type);
+    params.append('month', formattedMonth);
+
+    window.location.href = `../transactions/index.html?${params.toString()}`;
+};
+
+// ---------- UTILS ----------
+function formatCurrency(amount) {
+    return '₹' + Math.abs(amount).toLocaleString('en-IN');
+}
+
+function formatDateSmall(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+}

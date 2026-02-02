@@ -7,26 +7,43 @@ console.log('Transactions.js loaded');
     const API_BASE = 'http://localhost:3004';
 
     // --- State ---
-    // --- State ---
-    // --- State ---
-    const navEntry = performance.getEntriesByType("navigation")[0];
-    const navType = navEntry ? navEntry.type : 'navigate';
+    const params = new URLSearchParams(window.location.search);
+    const typeParam = params.get('type');
+    const monthParam = params.get('month'); // Expects YYYY-MM
 
     let currentYear, currentMonth;
+    let activeTypeFilters = ['expense', 'income', 'investment']; // Default all
 
-    if (navType === 'reload' || navType === 'back_forward') {
-        const savedYear = localStorage.getItem('selectedTransactionYear');
-        const savedMonth = localStorage.getItem('selectedTransactionMonth');
-        currentYear = savedYear ? parseInt(savedYear) : new Date().getFullYear();
-        currentMonth = savedMonth ? parseInt(savedMonth) : new Date().getMonth() + 1;
+    // 1. Initialize Date from URL > LocalStorage > Today
+    if (monthParam && monthParam.includes('-')) {
+        const [year, month] = monthParam.split('-').map(Number);
+        currentYear = year;
+        currentMonth = month;
     } else {
-        const today = new Date();
-        currentYear = today.getFullYear();
-        currentMonth = today.getMonth() + 1;
-        // Update storage
-        localStorage.setItem('selectedTransactionYear', currentYear);
-        localStorage.setItem('selectedTransactionMonth', currentMonth);
+        const navEntry = performance.getEntriesByType("navigation")[0];
+        const navType = navEntry ? navEntry.type : 'navigate';
+
+        if (navType === 'reload' || navType === 'back_forward') {
+            const savedYear = localStorage.getItem('selectedTransactionYear');
+            const savedMonth = localStorage.getItem('selectedTransactionMonth');
+            currentYear = savedYear ? parseInt(savedYear) : new Date().getFullYear();
+            currentMonth = savedMonth ? parseInt(savedMonth) : new Date().getMonth() + 1;
+        } else {
+            const today = new Date();
+            currentYear = today.getFullYear();
+            currentMonth = today.getMonth() + 1;
+        }
     }
+
+    // 2. Initialize Type Filter from URL > Default
+    if (typeParam && ['income', 'expense', 'investment'].includes(typeParam.toLowerCase())) {
+        activeTypeFilters = [typeParam.toLowerCase()];
+    }
+
+    // Sync localStorage immediately
+    localStorage.setItem('selectedTransactionYear', currentYear);
+    localStorage.setItem('selectedTransactionMonth', currentMonth);
+
     let currentUser = null;
 
     // Data Storage
@@ -36,7 +53,6 @@ console.log('Transactions.js loaded');
     let allTypes = []; // [{id: 'type-1', name: 'Income'}, ...]
 
     // Filter State
-    let activeTypeFilters = ['expense', 'income', 'investment']; // Default all
     let activeCategoryFilter = '';
     let activeItemFilter = '';
 
@@ -58,6 +74,8 @@ console.log('Transactions.js loaded');
         }
         currentUser = JSON.parse(userStr);
 
+        // 2. Logic handled at top of IIFE for currentYear, currentMonth, and activeTypeFilters
+
         // 3. Setup Event Listeners
         setupEventListeners();
 
@@ -69,8 +87,23 @@ console.log('Transactions.js loaded');
         initFormDatePicker(); // Initialize Flatpickr for Form
         updateMonthDisplay();
 
-        // 6. Load Transactions
-        loadTransactions();
+        // 6. Sync filter dropdown UI if parameter was passed
+        if (typeParam) {
+            const filterTypeEl = document.getElementById('filter-type');
+            const logicalType = typeParam.toLowerCase();
+
+            if (filterTypeEl && ['income', 'expense', 'investment'].includes(logicalType)) {
+                console.log('Force applying type filter:', logicalType);
+                filterTypeEl.value = logicalType;
+                activeTypeFilters = [logicalType]; // Ensure the JS state is updated too
+
+                // Refresh category options to match the selected type
+                updateFilterCategoryOptions();
+            }
+        }
+
+        // 7. Load Transactions (which calls renderTransactions internally)
+        await loadTransactions();
     }
 
     // --- Data Loading ---
@@ -228,6 +261,7 @@ console.log('Transactions.js loaded');
     function initMonthPicker() {
         if (typeof flatpickr !== 'undefined') {
             const fp = flatpickr("#month-picker", {
+                defaultDate: new Date(currentYear, currentMonth - 1, 1),
                 plugins: [new monthSelectPlugin({ shorthand: true, dateFormat: "Y-m-d", altFormat: "F Y", theme: "material_blue" })],
                 onChange: function (selectedDates) {
                     if (selectedDates.length > 0) {

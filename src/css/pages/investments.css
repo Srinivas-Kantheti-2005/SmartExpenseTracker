@@ -416,6 +416,10 @@ textarea.single-line-input {
     justify-content: flex-end;
 }
 
+.investment-table tr:hover .btn-icon {
+    opacity: 1;
+}
+
 .btn-icon {
     background: transparent;
     border: none;
@@ -423,14 +427,16 @@ textarea.single-line-input {
     font-size: 16px;
     padding: 6px;
     border-radius: 6px;
-    transition: background 0.2s;
+    transition: background 0.2s, opacity 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0.5;
 }
 
 .btn-icon:hover {
     background: #f1f5f9;
+    opacity: 1;
 }
 
 .delete-btn:hover {
