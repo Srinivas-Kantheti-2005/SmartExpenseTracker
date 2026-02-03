@@ -71,9 +71,9 @@ const BudgetModel = {
         } else {
             const id = generateUUID();
             execute(`
-                INSERT INTO budgets (id, user_id, category_id, budget_amount, month, year, alert_threshold, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-            `, [id, userId, data.category_id, data.amount, data.month, data.year, data.alert_threshold || 80]);
+                INSERT INTO budgets (id, user_id, email, category_id, budget_amount, month, year, alert_threshold, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+            `, [id, userId, data.email, data.category_id, data.amount, data.month, data.year, data.alert_threshold || 80]);
             return this.findById(id, userId);
         }
     },

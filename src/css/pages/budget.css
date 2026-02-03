@@ -78,8 +78,8 @@
 /* --- Grid Layout --- */
 .budget-grid {
     display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    /* Balanced width ratio */
+    grid-template-columns: 300px 1fr;
+    /* Reduced width for narrower controls */
     gap: 30px;
     align-items: start;
     /* Prevent stretching, adhere to content height */
@@ -137,6 +137,22 @@
     border-radius: 12px;
     transition: background 0.2s;
     /* Removed cursor: pointer from container */
+}
+
+/* Muted style for disabled inputs (e.g., Month field before category selection) */
+#budget-form input:disabled,
+#budget-form input[disabled],
+#budget-form select:disabled,
+#budget-form select[disabled] {
+    background-color: #f8fafc !important;
+    color: #cbd5e1 !important;
+    /* Lighter slate for clear disabled look */
+    cursor: not-allowed;
+    border-color: #e2e8f0 !important;
+    opacity: 1 !important;
+    /* Ensure color is visible on iOS */
+    -webkit-text-fill-color: #cbd5e1 !important;
+    /* Safari specific */
 }
 
 .date-display-container:hover {
@@ -292,6 +308,8 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    padding: 0 10px !important;
+    /* User Requested 10px Padding */
 }
 
 .budget-list-card .card-header {

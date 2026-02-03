@@ -117,10 +117,17 @@
                                     <option value="" disabled selected>Select Item</option>
                                 </select>
                             </div>
-
-                            <div class="form-group">
-                                <label for="budget-amount">Monthly Limit</label>
-                                <input type="number" id="budget-amount" placeholder="₹ 0" min="1" required>
+                            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div class="form-group">
+                                    <label for="budget-month-display">Month</label>
+                                    <input type="text" id="budget-month-display"
+                                        style="font-weight: 500; cursor: pointer;" disabled>
+                                </div>
+                                <div class="form-group">
+                                    <label for="budget-amount">Monthly Limit</label>
+                                    <input type="number" id="budget-amount" placeholder="e.g, 0.00" min="1" step="0.01"
+                                        required>
+                                </div>
                             </div>
 
                             <div class="form-actions">
@@ -143,6 +150,7 @@
                             <table class="budget-table">
                                 <thead>
                                     <tr>
+                                        <th>Month</th>
                                         <th>Category</th>
                                         <th>Item</th>
                                         <th>Budget</th>
@@ -156,8 +164,9 @@
                             <div id="no-budgets-message" class="empty-state" style="display: none;">
                                 <div
                                     style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; color: #94a3b8;">
-                                    <span style="font-size: 48px; margin-bottom: 16px;">📭</span>
-                                    <p style="font-size: 16px; margin: 0;">Add your budgets for this month</p>
+                                    <span style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">📭</span>
+                                    <p style="font-size: 16px; margin: 0; font-weight: 700;">Add your budgets for this
+                                        month</p>
                                 </div>
                             </div>
                         </div>

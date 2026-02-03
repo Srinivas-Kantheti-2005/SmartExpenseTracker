@@ -5,7 +5,7 @@ console.log('Income.js loaded');
 
 (function () { // Start IIFE
 
-    const API_BASE = 'http://localhost:3004'; // Standard API Base
+    const API_BASE = window.API_BASE_URL || 'http://localhost:5000/api';
 
     // State
     // State
@@ -554,7 +554,7 @@ console.log('Income.js loaded');
         const total = monthIncomes.reduce((sum, inc) => sum + (parseFloat(inc.amount) || 0), 0);
         const display = document.getElementById('total-income-display');
         if (display) {
-            display.textContent = `₹ ${total.toLocaleString()}`;
+            display.textContent = `₹ ${total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
     }
 
@@ -610,11 +610,11 @@ console.log('Income.js loaded');
                     </div>
                 </td>
                 <td><input type="text" id="edit-desc-${inc.id}" value="${inc.description || ''}" class="single-line-input" style="height: 36px !important;"></td>
-                <td><input type="number" id="edit-amount-${inc.id}" value="${inc.amount}" class="single-line-input edit-amount-input" style="height: 36px !important; font-weight: 700; color: #15803d;"></td>
+                <td><input type="number" id="edit-amount-${inc.id}" value="${Number(inc.amount).toFixed(2)}" class="single-line-input edit-amount-input" step="0.01" style="height: 36px !important; font-weight: 700; color: #15803d;"></td>
                 <td style="text-align: right;">
                     <div class="action-buttons">
-                        <button class="btn-icon save-btn" style="color: #15803d; background: #f0fdf4;" title="Save">💾</button>
-                        <button class="btn-icon cancel-btn" style="color: #64748b;" title="Cancel">❌</button>
+                        <button class="action-btn save-btn" title="Save">✔</button>
+                        <button class="action-btn cancel-btn" title="Cancel">✖</button>
                     </div>
                 </td>
             `;
@@ -675,7 +675,7 @@ console.log('Income.js loaded');
                 </td>
                 <td>${itemName}</td>
                 <td style="color: #64748b; font-size: 13px;">${inc.description || '—'}</td>
-                <td class="amount-positive">₹ ${Number(inc.amount).toLocaleString()}</td>
+                <td class="amount-positive">₹ ${Number(inc.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 <td style="text-align: right;">
                     <div class="action-buttons">
                         <button class="btn-icon edit-btn" title="Edit">✏️</button>

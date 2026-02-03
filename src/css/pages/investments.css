@@ -494,6 +494,8 @@ span.flatpickr-weekday {
 .empty-state .empty-icon {
     font-size: 48px;
     margin-bottom: 16px;
+    opacity: 0.5;
+    /* Fading emoji */
 }
 
 .empty-state p {

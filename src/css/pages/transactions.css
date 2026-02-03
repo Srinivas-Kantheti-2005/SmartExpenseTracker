@@ -43,9 +43,10 @@
     min-width: 280px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 20px;
     background: white;
-    padding: 0 24px;
+    padding: 0 32px;
     height: 80px;
     border-radius: 16px;
     border: 1px solid #f1f5f9;
@@ -76,8 +77,10 @@
 }
 
 .current-month-text {
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 18px;
+    /* Increased from 16px */
+    font-weight: 700;
+    /* Slightly bolder to match size increase */
     color: #0f172a;
     margin-left: 8px;
 }
@@ -400,17 +403,20 @@ textarea.single-line-input {
 /* Amount Colors - Increased Specificity */
 .transactions-table td.amount-expense {
     color: #ef4444;
-    font-weight: 600;
+    font-weight: 700;
+    /* Bold */
 }
 
 .transactions-table td.amount-income {
     color: #16a34a;
-    font-weight: 600;
+    font-weight: 700;
+    /* Bold */
 }
 
 .transactions-table td.amount-investment {
     color: #2563eb;
-    font-weight: 600;
+    font-weight: 700;
+    /* Bold */
 }
 
 /* Type Pills in Table */
@@ -545,11 +551,15 @@ textarea.single-line-input {
     color: #64748b;
     font-size: 16px;
     margin-bottom: 8px;
+    font-weight: 700;
+    /* Bold */
 }
 
 .sub-text {
     font-size: 14px !important;
     opacity: 0.8;
+    font-weight: 700;
+    /* Bold */
 }
 
 .btn-text {

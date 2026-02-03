@@ -1,8 +1,20 @@
 /**
- * Shared Header Utilities
+ * Shared Header Utilities & Global Config
  * Handles:
- * 1. Displaying logged-in user name and avatar in the header.
+ * 1. Global API Configuration & Auth Headers
+ * 2. Displaying logged-in user name and avatar in the header.
  */
+
+// Global Configuration
+window.API_BASE_URL = 'http://localhost:5000/api';
+
+window.getAuthHeaders = function () {
+    const token = localStorage.getItem('token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+};
 
 document.addEventListener('DOMContentLoaded', function () {
     updateUserProfile();

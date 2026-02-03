@@ -5,29 +5,7 @@
 
 // ---------- CONFIG & STATE ----------
 // ---------- CONFIG & STATE ----------
-const API_BASE = "http://localhost:3004";
-let currentUser = null;
-
-try {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-        currentUser = JSON.parse(userStr);
-    } else {
-        // Fallback: Try session storage
-        const sessionUser = sessionStorage.getItem('user');
-        if (sessionUser) {
-            console.log("Restoring user from session storage...");
-            currentUser = JSON.parse(sessionUser);
-            // Restore to local storage
-            localStorage.setItem('user', sessionUser);
-            localStorage.setItem('isLoggedIn', 'true');
-        }
-    }
-} catch (error) {
-    console.error("Error parsing user from localStorage:", error);
-    localStorage.removeItem('user'); // Clear invalid data
-}
-
+const API_BASE = window.API_BASE_URL || "http://localhost:5000/api";
 const CATEGORY_COLORS = {
     'Food & Dining': '#3b82f6',     // Blue
     'Shopping': '#f59e0b',          // Orange
@@ -57,51 +35,18 @@ let dashboardData = {
 let expenseDonutChart = null;
 
 // ---------- INIT ----------
-const MAX_RETRIES = 3;
-
 document.addEventListener('DOMContentLoaded', () => {
-    // Check for login loop using reliable URL param
-    const urlParams = new URLSearchParams(window.location.search);
-    const fromLogin = urlParams.get('from') === 'login';
-
-    if (!currentUser) {
-        if (fromLogin) {
-            console.error("Login Loop Detected: Redirected from login but no session found.");
-            // Stop redirecting and show error
-            document.body.innerHTML = `
-                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#333;text-align:center;padding:20px;">
-                    <div style="font-size:48px;margin-bottom:20px;">⚠️</div>
-                    <h1 style="color:#ef4444;">Login Failed</h1>
-                    <p style="max-width:400px;line-height:1.6;color:#666;">
-                        Secure session creation failed. Your browser might be blocking local storage access.
-                    </p>
-                    <div style="margin-top:30px;display:flex;gap:15px;">
-                        <button onclick="localStorage.clear(); sessionStorage.clear(); window.location.href='../auth/login.html'" 
-                            style="padding:10px 20px;background:#3b82f6;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:500;">
-                            Try Again
-                        </button>
-                    </div>
-                    <p style="margin-top:40px;font-size:12px;color:#94a3b8;">
-                        Debug: Storage Access Denied or Quota Exceeded
-                    </p>
-                </div>
-            `;
-            return;
-        }
-
-        console.warn("No valid user found in dashboard. Redirecting to login.");
-        window.location.href = '../auth/login.html';
-        return;
+    // Check user session
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+        currentUser = JSON.parse(userStr);
+        console.log("Dashboard initialized for user:", currentUser.email);
+    } else {
+        // Redirect to login if needed, or handle as guest
+        // window.location.href = '/pages/auth/login.html';
+        console.warn("No logged in user found.");
     }
 
-    // Clean up URL if from login
-    if (fromLogin) {
-        const url = new URL(window.location);
-        url.searchParams.delete('from');
-        window.history.replaceState({}, '', url);
-    }
-
-    console.log("Dashboard initialized for user:", currentUser.email);
     initDashboard();
 });
 
@@ -133,17 +78,23 @@ async function initDashboard() {
 // ---------- DATA LOADING & PROCESSING ----------
 async function loadData() {
     try {
+        const headers = getAuthHeaders();
         const [txRes, catRes, itemRes] = await Promise.all([
-            fetch(`${API_BASE}/transactions?email=${currentUser.email}`),
-            fetch(`${API_BASE}/categories?email=${currentUser.email}`),
-            fetch(`${API_BASE}/items?email=${currentUser.email}`)
+            fetch(`${API_BASE}/transactions`, { headers }),
+            fetch(`${API_BASE}/categories`, { headers }),
+            fetch(`${API_BASE}/items`, { headers })
         ]);
 
         if (!txRes.ok || !catRes.ok || !itemRes.ok) throw new Error("Failed to fetch data");
 
-        allTransactions = await txRes.json();
-        categories = await catRes.json();
-        items = await itemRes.json();
+        const txData = await txRes.json();
+        allTransactions = txData.data || []; // Handle API response structure { data: [...] }
+
+        const catData = await catRes.json();
+        categories = catData.data || [];
+
+        const itemData = await itemRes.json();
+        items = itemData.data || [];
 
         processDashboardData();
     } catch (error) {
@@ -205,7 +156,7 @@ function processDashboardData() {
 // ---------- UI UPDATES ----------
 function updateUI() {
     updateSummaryCards();
-    updateDonutChart();
+    // updateDonutChart(); // Disabled
     renderRecentTransactions();
 }
 
@@ -348,7 +299,10 @@ function renderRecentTransactions() {
     if (!listContainer) return;
 
     if (dashboardData.recentTransactions.length === 0) {
-        listContainer.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 40px; font-weight: 500;">No transactions found for this month.</p>';
+        listContainer.innerHTML = `<div class="chart-empty-state">
+            <span class="empty-icon-large">📭</span>
+            <span class="empty-text-desc" style="color: #64748b; font-weight: 700;">No transactions for this month</span>
+        </div>`;
         return;
     }
 
@@ -430,6 +384,11 @@ function setupMonthSelector() {
                 renderPicker();
             }
         });
+
+        // Prevent closing when clicking inside the modal
+        modal.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
     }
 
     // Switch between Month and Year view
@@ -465,7 +424,7 @@ function setupMonthSelector() {
         nextYearBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (isYearView) {
-                pickerYear += 12; // Jump 12 years
+                pickerYear += 12;
             } else {
                 pickerYear++;
             }
@@ -553,7 +512,7 @@ window.navigateToTransactions = function (type) {
 
 // ---------- UTILS ----------
 function formatCurrency(amount) {
-    return '₹' + Math.abs(amount).toLocaleString('en-IN');
+    return '₹ ' + Math.abs(amount).toLocaleString('en-IN');
 }
 
 function formatDateSmall(dateStr) {

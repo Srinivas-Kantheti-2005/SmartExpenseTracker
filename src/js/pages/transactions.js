@@ -4,7 +4,7 @@
 console.log('Transactions.js loaded');
 
 (function () {
-    const API_BASE = 'http://localhost:3004';
+    const API_BASE = window.API_BASE_URL || 'http://localhost:5000/api';
 
     // --- State ---
     const params = new URLSearchParams(window.location.search);
@@ -108,10 +108,7 @@ console.log('Transactions.js loaded');
 
     // --- Data Loading ---
 
-    function getAuthHeaders() {
-        const token = localStorage.getItem('token');
-        return token ? { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
-    }
+    // function getAuthHeaders() { ... } // Removed, using global window.getAuthHeaders
 
     async function loadMetadata() {
         try {

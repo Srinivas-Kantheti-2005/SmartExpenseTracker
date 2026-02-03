@@ -1,9 +1,9 @@
 /* ============================
    MODERN DASHBOARD STYLES
-   ============================ */
+============================ */
 
 /* =======================
-   GLOBAL RESET
+   GLOBAL RESET & BASE
 ======================= */
 * {
     box-sizing: border-box;
@@ -26,20 +26,23 @@ body {
    SIDEBAR
 ======================= */
 .sidebar {
-    width: 70px;
-    height: 100vh;
-    background: linear-gradient(180deg, #1e3a5f 0%, #2c3e50 50%, #1a252f 100%);
     position: fixed;
     top: 0;
     left: 0;
-
+    width: 70px;
+    height: 100vh;
+    background: linear-gradient(180deg, #1e3a5f 0%, #2c3e50 50%, #1a252f 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
-
     z-index: 1000;
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar:hover {
+    width: 240px;
+    align-items: flex-start;
 }
 
 .sidebar-menu {
@@ -52,27 +55,29 @@ body {
 }
 
 .menu-item {
+    position: relative;
     width: 100%;
+    padding: 14px 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 14px 0;
     text-decoration: none;
     color: rgba(255, 255, 255, 0.7);
     border-radius: 12px;
     transition: all 0.3s ease;
-    position: relative;
     overflow: hidden;
-    line-height: normal;
+}
+
+.sidebar:hover .menu-item {
+    justify-content: flex-start;
+    padding-left: 15px;
 }
 
 .menu-item::before {
     content: '';
     position: absolute;
-    left: 0;
-    top: 0;
+    inset: 0;
     width: 0;
-    height: 100%;
     background: linear-gradient(90deg, rgba(102, 126, 234, 0.3), transparent);
     transition: width 0.3s ease;
 }
@@ -99,17 +104,6 @@ body {
     font-size: 15px;
     font-weight: 500;
     white-space: nowrap;
-    z-index: 1;
-}
-
-.sidebar:hover {
-    width: 240px;
-    align-items: flex-start;
-}
-
-.sidebar:hover .menu-item {
-    justify-content: flex-start;
-    padding-left: 15px;
 }
 
 .sidebar:hover .menu-item .label {
@@ -117,12 +111,12 @@ body {
 }
 
 .menu-item:hover {
-    color: #ffffff;
+    color: #fff;
     background: rgba(255, 255, 255, 0.1);
 }
 
 .menu-item.active {
-    color: #ffffff;
+    color: #fff;
     background: linear-gradient(90deg, rgba(102, 126, 234, 0.4), rgba(118, 75, 162, 0.3));
 }
 
@@ -138,18 +132,16 @@ body {
     border-radius: 0 4px 4px 0;
 }
 
-/* Sidebar Separator */
+.menu-item.logout-item:hover {
+    background: rgba(255, 107, 107, 0.3);
+    color: #ff6b6b;
+}
+
 .sidebar-separator {
     width: 80%;
     height: 1px;
     background: rgba(255, 255, 255, 0.2);
     margin: 15px auto;
-}
-
-/* Logout Item */
-.menu-item.logout-item:hover {
-    background: rgba(255, 107, 107, 0.3);
-    color: #ff6b6b;
 }
 
 /* =======================
@@ -163,21 +155,37 @@ body {
     height: 75px;
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
-
     padding: 0 25px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     z-index: 900;
     transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 20px;
 }
 
 .sidebar:hover~.top-header {
     left: 240px;
+}
+
+/* =======================
+   MAIN CONTENT
+======================= */
+.main-content {
+    margin-left: 70px;
+    padding: 30px 40px;
+    min-height: 100vh;
+    background: #f8fafc;
+    transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar:hover~.main-content {
+    margin-left: 240px;
+}
+
+.page-container {
+    max-width: 1400px;
+    margin: 70px auto 0;
 }
 
 /* =======================
@@ -189,12 +197,11 @@ body {
     border-radius: 16px;
     height: 60px;
     border: 1px solid rgba(255, 255, 255, 0.5);
-
     display: flex;
     align-items: center;
     gap: 12px;
-    flex: 1;
     transition: all 0.3s ease;
+    flex: 1;
 }
 
 .header-card:hover {
@@ -213,20 +220,13 @@ body {
 .card-logo h3 {
     font-size: 16px;
     font-weight: 700;
-    background: linear-gradient(135deg, #1e3a5f, #3d5a80);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #1e3a5f;
 }
 
 /* Calendar */
 .card-date {
     justify-content: center;
     font-weight: 600;
-}
-
-.calendar-icon {
-    font-size: 24px;
 }
 
 .date-info {
@@ -251,304 +251,251 @@ body {
     height: 45px;
     border-radius: 50%;
     background: linear-gradient(135deg, #667eea, #764ba2);
-    position: relative;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
-.user-avatar:hover {
-    transform: scale(1.08);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
-}
-
-/* Dropdown */
-.user-dropdown {
-    display: none;
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    padding: 8px;
-    min-width: 120px;
-    animation: dropdownFade 0.2s ease;
-}
-
-/* Bridge element to prevent hover gap */
-.user-avatar::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    height: 10px;
-    background: transparent;
-}
-
-@keyframes dropdownFade {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.user-avatar:hover .user-dropdown {
-    display: block;
-}
-
-.logout-btn {
-    display: block;
-    text-decoration: none;
-    padding: 10px 16px;
-    border-radius: 8px;
-    color: #2c3e50;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.logout-btn:hover {
-    background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
-    color: white;
-}
-
 /* =======================
-   MAIN CONTENT & DASHBOARD
+   DASHBOARD HEADER
 ======================= */
-.main-content {
-    margin-left: 70px;
-    padding: 30px 40px;
-    transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    min-height: 100vh;
-    background: #f8fafc;
-}
-
-.sidebar:hover~.main-content {
-    margin-left: 240px;
-}
-
-.page-container {
-    max-width: 1400px;
-    margin: 70px auto 0;
-}
-
-/* Dashboard Internal Header */
 .dashboard-header-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 35px;
     background: white;
     padding: 25px 35px;
     border-radius: 24px;
     border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    margin-bottom: 35px;
+    position: relative;
+    z-index: 10;
 }
 
 .dashboard-header-card h1 {
     font-size: 32px;
     font-weight: 800;
     color: #1e293b;
-    margin-bottom: 6px;
-    letter-spacing: -0.02em;
 }
 
 .tagline {
     font-size: 15px;
     color: #64748b;
-    font-weight: 500;
 }
 
-/* Month Selector */
+/* =======================
+   MONTH SELECTOR
+======================= */
 .month-selector-card {
     display: flex;
     align-items: center;
+    gap: 15px;
     background: white;
     padding: 14px 24px;
     border-radius: 14px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
     border: 1px solid #e2e8f0;
-    gap: 15px;
+}
+
+.date-display-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .month-nav-btn {
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    color: #475569;
+    border: 1px solid #e2e8f0;
+    background: #f1f5f9;
     cursor: pointer;
+    font-size: 20px;
     transition: all 0.2s;
 }
 
 .month-nav-btn:hover {
     background: #e2e8f0;
-    color: #1e293b;
 }
 
-.date-display-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 0 5px;
-    position: relative;
-    /* For the hidden input */
-}
-
-/* Custom Month Picker Modal */
-.custom-month-picker {
-    position: absolute;
-    top: calc(100% + 15px);
-    left: 50%;
-    transform: translateX(-50%) translateY(-10px);
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 20px;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
-    padding: 20px;
-    z-index: 1000;
-    width: 280px;
-    display: none;
-    /* Controlled by JS */
-    flex-direction: column;
-    gap: 15px;
-    transition: all 0.3s ease;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.custom-month-picker.active {
-    display: flex;
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateX(-50%) translateY(0);
-}
-
-.picker-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #f1f5f9;
-}
-
-.picker-header span {
+.current-month-text {
+    display: inline-block;
     font-weight: 800;
-    font-size: 18px;
-    color: #1e293b;
-}
-
-.picker-header button {
-    background: #f1f5f9;
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 18px;
-    color: #475569;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.picker-header button:hover {
-    background: #e2e8f0;
-    color: #1e293b;
-}
-
-.picker-header span:hover {
-    color: #4f46e5;
-}
-
-.months-grid,
-.years-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-}
-
-.month-btn,
-.year-btn {
-    padding: 10px;
-    border: none;
-    background: #f8fafc;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #64748b;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.month-btn:hover,
-.year-btn:hover {
-    background: #e2e8f0;
-    color: #1e293b;
-}
-
-.month-btn.active,
-.year-btn.active {
-    background: #4f46e5;
-    color: white;
-}
-
-/* Dark Mode Support for Picker */
-body.dark-mode .custom-month-picker {
-    background: #1e293b;
-    border-color: #334155;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
-}
-
-body.dark-mode .picker-header span {
-    color: #f1f5f9;
-}
-
-body.dark-mode .picker-header button {
-    background: #334155;
-    color: #cbd5e0;
-}
-
-body.dark-mode .month-btn {
-    background: #334155;
-    color: #94a3b8;
-}
-
-body.dark-mode .month-btn:hover {
-    background: #475569;
-    color: #f1f5f9;
-}
-
-body.dark-mode .month-btn.active {
-    background: #4f46e5;
-    color: white;
+    font-size: 16px;
+    width: 160px;
+    text-align: center;
 }
 
 .calendar-icon {
     font-size: 20px;
 }
 
-.current-month-text {
-    font-weight: 700;
-    color: #1e293b;
-    font-size: 16px;
-    min-width: 140px;
-    text-align: center;
+/* Custom Month Picker Modal */
+.custom-month-picker {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 25px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    width: 320px;
+    z-index: 100;
+    padding: 16px;
 }
 
-/* Summary Cards Grid */
+.custom-month-picker.active {
+    display: block;
+    animation: fadeIn 0.15s ease-out;
+}
+
+.picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.picker-header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #64748b;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.picker-header button:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.picker-header span {
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* Month Picker Grid - 4 columns per row (Standard) */
+.flatpickr-monthSelect-months {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    /* 4 months per row */
+    gap: 12px !important;
+    justify-content: center !important;
+    padding: 10px !important;
+    width: 100% !important;
+}
+
+/* Fix for selection background size in Month Picker */
+.flatpickr-monthSelect-month {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 40px !important;
+    margin: 0 !important;
+    border-radius: 8px !important;
+}
+
+.flatpickr-monthSelect-month.selected {
+    background: #4f46e5 !important;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3) !important;
+}
+
+.months-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.months-grid button {
+    background: none;
+    border: none;
+    padding: 12px 4px;
+    font-size: 13px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #334155;
+    font-weight: 700;
+    transition: all 0.2s;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+}
+
+.months-grid button:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+.months-grid button.active {
+    background: #3b82f6;
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);
+}
+
+.years-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.years-grid button {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 12px 4px;
+    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #475569;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.years-grid button:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+    border-color: #cbd5e1;
+}
+
+.years-grid button.active {
+    background: #3b82f6;
+    color: #ffffff;
+    font-weight: 700;
+    border-color: #3b82f6;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);
+}
+
+.months-grid button.active {
+    background: #eff6ff;
+    color: #2563eb;
+    font-weight: 700;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* =======================
+   SUMMARY CARDS
+======================= */
 .summary-cards-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -560,33 +507,34 @@ body.dark-mode .month-btn.active {
     background: white;
     padding: 24px;
     border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    border: 1px solid #e2e8f0;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    justify-content: center;
+    gap: 15px;
+    min-height: 130px;
 }
 
 .summary-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 .card-title {
     font-size: 13px;
-    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
     color: #94a3b8;
+    font-weight: 700;
+    display: block;
 }
 
 .card-amount {
     font-size: 28px;
     font-weight: 800;
-    letter-spacing: -0.01em;
+    display: block;
 }
+
 
 /* Summary Card Colors */
 .summary-card.income {
@@ -621,7 +569,9 @@ body.dark-mode .month-btn.active {
     color: #1e293b;
 }
 
-/* Dashboard Main Grid (Split Row) */
+/* =======================
+   DASHBOARD MAIN GRID
+======================= */
 .dashboard-main-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -639,7 +589,6 @@ body.dark-mode .month-btn.active {
     display: flex;
     flex-direction: column;
     min-height: 400px;
-    /* Base height to ensure consistency */
 }
 
 .dashboard-card .card-header {
@@ -653,7 +602,6 @@ body.dark-mode .month-btn.active {
     font-size: 20px;
     font-weight: 800;
     color: #1e293b;
-    letter-spacing: -0.01em;
 }
 
 /* Chart Styles */
@@ -698,7 +646,6 @@ body.dark-mode .month-btn.active {
     color: #94a3b8;
     font-weight: 700;
     text-transform: capitalize;
-    letter-spacing: 0.5px;
     margin-top: 2px;
 }
 
@@ -716,7 +663,6 @@ body.dark-mode .month-btn.active {
     display: flex;
     align-items: center;
     gap: 15px;
-    /* Bring them closer together */
     font-size: 14px;
 }
 
@@ -740,34 +686,6 @@ body.dark-mode .month-btn.active {
 .legend-percent {
     font-weight: 700;
     color: #1e293b;
-}
-
-/* Empty State for Chart Card */
-.chart-empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    /* Take remaining space in card */
-    text-align: center;
-    color: #94a3b8;
-    gap: 10px;
-    padding-bottom: 30px;
-    /* Offset for the header height to center better */
-}
-
-.empty-icon-large {
-    font-size: 40px;
-    display: block;
-    margin-bottom: 5px;
-}
-
-.empty-text-desc {
-    font-weight: 600;
-    font-size: 15px;
-    line-height: 1.5;
-    white-space: pre-line;
 }
 
 /* Recent Transactions */
@@ -850,39 +768,41 @@ body.dark-mode .month-btn.active {
     font-weight: 700;
     color: #4f46e5;
     text-decoration: none;
-    transition: color 0.2s;
 }
 
-.view-all-link:hover {
-    color: #4338ca;
-    text-decoration: none;
+/* Chart Empty State */
+.chart-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    padding: 20px 0;
 }
 
-/* Chart Canvas Sizing */
-#expenseDonutChart {
-    width: 100% !important;
-    height: 100% !important;
+.empty-icon-large {
+    font-size: 42px;
+    margin-bottom: 15px;
+    display: block;
+    opacity: 0.7;
 }
 
-/* Responsiveness */
-@media (max-width: 1280px) {
-    .chart-content {
-        flex-direction: column;
-        align-items: center;
-        gap: 30px;
-    }
-
-    .chart-legend {
-        width: 100%;
-        max-height: none;
-    }
+.empty-text-desc {
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 15px;
+    white-space: pre-line;
+    line-height: 1.6;
+    display: block;
+    text-align: center;
 }
 
+/* =======================
+   RESPONSIVE
+======================= */
 @media (max-width: 1100px) {
-    .dashboard-main-grid {
-        grid-template-columns: 1fr;
-    }
-
     .summary-cards-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -897,219 +817,82 @@ body.dark-mode .month-btn.active {
         flex-direction: column;
         gap: 20px;
     }
-
-    .month-selector-card {
-        width: 100%;
-        justify-content: space-between;
-    }
 }
 
-
-
 /* =======================
-   DARK MODE STYLES
+   DARK MODE
 ======================= */
 body.dark-mode {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
 }
 
 body.dark-mode .sidebar {
-    background: linear-gradient(180deg, #0f0f1a 0%, #1a1a2e 50%, #0f0f1a 100%);
+    background: linear-gradient(180deg, #0f0f1a, #1a1a2e);
 }
 
 body.dark-mode .top-header {
     background: rgba(26, 26, 46, 0.9);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-body.dark-mode .header-card {
-    background: linear-gradient(135deg, rgba(30, 40, 60, 0.8), rgba(40, 50, 70, 0.6));
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-body.dark-mode .card-logo h3 {
-    color: #e2e8f0 !important;
-    -webkit-text-fill-color: #e2e8f0 !important;
-    background: none !important;
-}
-
-body.dark-mode .user-name,
-body.dark-mode .date-info {
-    color: #e2e8f0 !important;
-}
-
-body.dark-mode .summary-cards .card {
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-body.dark-mode .summary-cards h4 {
-    color: rgba(255, 255, 255, 0.8);
-}
-
-body.dark-mode .summary-cards p {
-    color: rgba(255, 255, 255, 0.95);
-}
-
-body.dark-mode .category-expense-chart .chart-card,
-body.dark-mode .expense-list-card {
-    background: rgba(30, 40, 60, 0.7);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-body.dark-mode .category-expense-chart h3,
-body.dark-mode .expense-list-card h3 {
-    color: #e2e8f0;
-}
-
-body.dark-mode .legend-item span,
-body.dark-mode .category-name {
-    color: #e2e8f0;
-}
-
-body.dark-mode .category-notes {
-    color: #a0aec0;
-}
-
-body.dark-mode .dashboard-header-card {
-    background: #1e293b;
-    border-color: #334155;
-}
-
-body.dark-mode .dashboard-header-card h1 {
-    color: #f1f5f9;
-}
-
-body.dark-mode .tagline {
-    color: #94a3b8;
-}
-
-body.dark-mode .month-selector-card {
-    background: #1e293b;
-    border-color: #334155;
-}
-
-body.dark-mode .current-month-text {
-    color: #f1f5f9;
-}
-
-body.dark-mode .month-nav-btn {
-    background: #334155;
-    border-color: #475569;
-    color: #cbd5e0;
-}
-
-body.dark-mode .month-nav-btn:hover {
-    background: #475569;
-    color: #f1f5f9;
-}
-
-body.dark-mode .summary-card {
-    background: #1e293b;
-    border-color: #334155;
-}
-
-body.dark-mode .card-amount {
-    color: #f1f5f9 !important;
-}
-
-body.dark-mode .summary-card.income {
-    border-top-color: #10b981;
-}
-
-body.dark-mode .summary-card.expense {
-    border-top-color: #ef4444;
-}
-
-body.dark-mode .summary-card.investment {
-    border-top-color: #3b82f6;
-}
-
-body.dark-mode .summary-card.balance {
-    border-top-color: #94a3b8;
-}
-
-body.dark-mode .dashboard-card {
-    background: #1e293b;
-    border-color: #334155;
-}
-
-body.dark-mode .dashboard-card h3 {
-    color: #f1f5f9;
-}
-
-body.dark-mode .total-spent-amount {
-    color: #f1f5f9;
-}
-
-body.dark-mode .category-name-text {
-    color: #cbd5e0;
-}
-
-body.dark-mode .legend-percent {
-    color: #f1f5f9;
-}
-
-body.dark-mode .recent-tx-row {
-    background: #0f172a;
-    border-color: #1e293b;
-}
-
-body.dark-mode .recent-tx-row:hover {
-    background: #1e293b;
-    border-color: #334155;
-}
-
-body.dark-mode .tx-info {
-    color: #e2e8f0;
-}
-
-body.dark-mode .tx-date {
-    color: #64748b;
 }
 
 body.dark-mode .main-content {
     background: #0f172a;
 }
 
-body.dark-mode .expense-item {
-    background: linear-gradient(135deg, rgba(30, 40, 60, 0.8), rgba(40, 50, 70, 0.6));
-    border-color: rgba(255, 255, 255, 0.05);
+body.dark-mode .dashboard-header-card,
+body.dark-mode .summary-card {
+    background: #1e293b;
+    border-color: #334155;
 }
 
-body.dark-mode .expense-item:hover {
-    background: linear-gradient(135deg, rgba(40, 50, 70, 0.9), rgba(50, 60, 80, 0.7));
+body.dark-mode .card-amount,
+body.dark-mode .current-month-text {
+    color: #f1f5f9;
 }
 
-body.dark-mode .user-dropdown {
-    background: #1a1a2e;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+/* Shared Action Button Styles (Matching Transactions Page) */
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    /* Increased size as requested */
+    padding: 6px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-body.dark-mode .logout-btn {
-    color: #e2e8f0;
+.action-btn:hover {
+    border: none !important;
+    /* Ensure no border on hover */
+    /* Background handled by specific classes */
 }
 
-body.dark-mode .logout-btn:hover {
-    background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
-    color: white;
+.save-btn {
+    color: #16a34a !important;
 }
 
-body.dark-mode .expense-empty p {
-    color: #a0aec0;
+.save-btn:hover {
+    background: #dcfce7 !important;
 }
 
-body.dark-mode .expense-empty .empty-hint {
-    color: #718096;
+.cancel-btn {
+    color: #ef4444 !important;
 }
 
-body.dark-mode .category-icon {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+.cancel-btn:hover {
+    background: #fee2e2 !important;
 }
 
-body.dark-mode .subcategory-name {
-    color: #a0aec0;
-}
-
-body.dark-mode .expense-note {
-    color: #cbd5e0;
+/* Standardization for Income/Investment Month Text */
+.current-month-display {
+    display: inline-block;
+    font-weight: 800;
+    /* Bold as requested */
+    font-size: 16px;
+    min-width: 150px;
+    text-align: center;
+    color: #1e293b;
 }

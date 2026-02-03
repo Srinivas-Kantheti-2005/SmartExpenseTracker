@@ -19,149 +19,170 @@
     <!-- =======================
      Sidebar
 ======================= -->
-    <aside class="sidebar" id="sidebar-container"></aside>
+    <aside class="sidebar">
+        <nav class="sidebar-menu">
+            <!-- Main Navigation -->
+            <a href="../dashboard/index.html" class="menu-item active"><span class="icon">🏠</span><span
+                    class="label">Dashboard</span></a>
+            <a href="../transactions/index.html" class="menu-item"><span class="icon">💳</span><span
+                    class="label">Transactions</span></a>
+            <a href="../income/index.html" class="menu-item"><span class="icon">💸</span><span
+                    class="label">Income</span></a>
+            <a href="../investments/index.html" class="menu-item"><span class="icon">📈</span><span
+                    class="label">Investments</span></a>
+            <a href="../budget/index.html" class="menu-item"><span class="icon">💰</span><span
+                    class="label">Budget</span></a>
+            <a href="../analytics/index.html" class="menu-item"><span class="icon">📊</span><span
+                    class="label">Analytics</span></a>
+            <a href="../networth/index.html" class="menu-item"><span class="icon">💎</span><span class="label">Net
+                    Worth</span></a>
+            <a href="../categories/index.html" class="menu-item"><span class="icon">📁</span><span
+                    class="label">Categories</span></a>
 
-    <!-- ... (rest of the file) ... -->
+            <!-- Separator -->
+            <div class="sidebar-separator"></div>
 
+            <!-- User/Account Items -->
+            <a href="../profile/index.html" class="menu-item"><span class="icon">👤</span><span
+                    class="label">Profile</span></a>
+            <a href="../settings/index.html" class="menu-item"><span class="icon">⚙️</span><span
+                    class="label">Settings</span></a>
+            <a href="../auth/login.html" class="menu-item logout-item"><span class="icon">🚪</span><span
+                    class="label">Logout</span></a>
+        </nav>
+    </aside>
+
+    <!-- =======================
+     Top Header
+======================= -->
+    <header class="top-header">
+
+        <!-- Logo Card -->
+        <div class="header-card card-logo">
+            <img src="../../assets/images/logo.png" alt="Logo">
+            <h3>Smart Expense Tracker</h3>
+        </div>
+
+        <!-- Calendar Card (CENTER) -->
+        <div class="header-card card-date">
+            <span class="calendar-icon">🗓️</span>
+            <div class="date-info">
+                <span class="day">Thursday</span>
+                <span class="date-no">01</span>
+                <span class="month">January</span>
+                <span class="year">2026</span>
+            </div>
+        </div>
+
+        <!-- User Card (RIGHT) -->
+        <div class="header-card card-user">
+            <span class="user-name">User Name</span>
+            <div class="user-avatar">
+                <span class="avatar"></span>
+            </div>
+        </div>
+
+    </header>
+
+    <!-- =======================
+     Main Content
+======================= -->
+    <main class="main-content">
+        <div class="page-container">
+            <!-- Dashboard Internal Header -->
+            <div class="dashboard-header-card">
+                <div class="header-left">
+                    <h1>Dashboard</h1>
+                    <p class="tagline">Track your income, expenses, and investments in one place</p>
+                </div>
+                <div class="header-right">
+                    <div class="month-selector-card">
+                        <button id="prev-month" class="month-nav-btn">‹</button>
+                        <div class="date-display-container" id="date-display-trigger" style="cursor: pointer;">
+                            <span class="calendar-icon">🗓️</span>
+                            <span id="current-month-text" class="current-month-text">February 2026</span>
+
+                            <!-- Custom Month Picker Modal -->
+                            <div class="custom-month-picker" id="month-picker-modal">
+                                <div class="picker-header">
+                                    <button type="button" id="picker-prev-year">‹</button>
+                                    <span id="picker-year-display" style="cursor: pointer;"
+                                        title="Select Year">2026</span>
+                                    <button type="button" id="picker-next-year">›</button>
+                                </div>
+                                <div class="months-grid" id="months-grid">
+                                    <!-- Months will be injected by JS -->
+                                </div>
+                            </div>
+                        </div>
+                        <button id="next-month" class="month-nav-btn">›</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 1: Summary Cards -->
+            <div class="summary-cards-grid">
+                <div class="summary-card income" id="income-summary-card">
+                    <span class="card-title">Monthly Income</span>
+                    <span class="card-amount">₹ 0</span>
+                </div>
+                <div class="summary-card expense" id="expense-summary-card">
+                    <span class="card-title">Monthly Expense</span>
+                    <span class="card-amount">₹ 0</span>
+                </div>
+                <div class="summary-card investment" id="investment-summary-card">
+                    <span class="card-title">Monthly Investment</span>
+                    <span class="card-amount">₹ 0</span>
+                </div>
+                <div class="summary-card balance" id="balance-summary-card">
+                    <span class="card-title">Monthly Balance</span>
+                    <span class="card-amount">₹ 0</span>
+                </div>
+            </div>
+
+            <!-- Row 2: Split Layout -->
+            <div class="dashboard-main-grid">
+                <!-- Expense Breakdown Card -->
+                <div class="dashboard-card breakdown-card">
+                    <div class="card-header">
+                        <h3>Expense Breakdown</h3>
+                    </div>
+                    <div class="chart-content">
+                        <div class="chart-wrapper">
+                            <canvas id="expenseDonutChart"></canvas>
+                            <div class="donut-center-info">
+                                <span class="total-spent-amount">₹ 0</span>
+                                <span class="total-spent-label">Spent</span>
+                            </div>
+                        </div>
+                        <div class="chart-legend" id="chart-legend">
+                            <!-- Legend items injected by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions Card -->
+                <div class="dashboard-card recent-tx-card">
+                    <div class="card-header">
+                        <h3>Recent Transactions</h3>
+                        <a href="../transactions/index.html" id="view-all-tx" class="view-all-link">View all →</a>
+                    </div>
+                    <div class="recent-tx-list" id="recent-transactions-list">
+                        <!-- Transactions injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- =======================
+     Scripts
+======================= -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../../js/utils/date.js"></script>
     <script src="../../js/utils/header-utils.js"></script>
     <script src="../../js/pages/settings.js"></script>
     <script src="../../js/pages/dashboard.js"></script>
-</body>
-
-</html>
-
-<!-- =======================
-     Top Header
-======================= -->
-<header class="top-header">
-
-    <!-- Logo Card -->
-    <div class="header-card card-logo">
-        <img src="../../assets/images/logo.png" alt="Logo">
-        <h3>Smart Expense Tracker</h3>
-    </div>
-
-    <!-- Calendar Card (CENTER) -->
-    <div class="header-card card-date">
-        <span class="calendar-icon">🗓️</span>
-        <div class="date-info">
-            <span class="day">Thursday</span>
-            <span class="date-no">01</span>
-            <span class="month">January</span>
-            <span class="year">2026</span>
-        </div>
-    </div>
-
-    <!-- User Card (RIGHT) -->
-    <div class="header-card card-user">
-        <span class="user-name">User Name</span>
-        <div class="user-avatar">
-            <span class="avatar"></span>
-        </div>
-    </div>
-
-</header>
-
-<!-- =======================
-     Main Content
-======================= -->
-<main class="main-content">
-    <div class="page-container">
-        <!-- Dashboard Internal Header -->
-        <div class="dashboard-header-card">
-            <div class="header-left">
-                <h1>Dashboard</h1>
-                <p class="tagline">Track your income, expenses, and investments in one place</p>
-            </div>
-            <div class="header-right">
-                <div class="month-selector-card">
-                    <button id="prev-month" class="month-nav-btn">‹</button>
-                    <div class="date-display-container" id="date-display-trigger" style="cursor: pointer;">
-                        <span class="calendar-icon">🗓️</span>
-                        <span id="current-month-text" class="current-month-text">February 2026</span>
-
-                        <!-- Custom Month Picker Modal -->
-                        <div class="custom-month-picker" id="month-picker-modal">
-                            <div class="picker-header">
-                                <button type="button" id="picker-prev-year">‹</button>
-                                <span id="picker-year-display" style="cursor: pointer;" title="Select Year">2026</span>
-                                <button type="button" id="picker-next-year">›</button>
-                            </div>
-                            <div class="months-grid" id="months-grid">
-                                <!-- Months will be injected by JS -->
-                            </div>
-                        </div>
-                    </div>
-                    <button id="next-month" class="month-nav-btn">›</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Row 1: Summary Cards -->
-        <div class="summary-cards-grid">
-            <div class="summary-card income" id="income-summary-card">
-                <span class="card-title">Monthly Income</span>
-                <span class="card-amount">₹ 0</span>
-            </div>
-            <div class="summary-card expense" id="expense-summary-card">
-                <span class="card-title">Monthly Expense</span>
-                <span class="card-amount">₹ 0</span>
-            </div>
-            <div class="summary-card investment" id="investment-summary-card">
-                <span class="card-title">Monthly Investment</span>
-                <span class="card-amount">₹ 0</span>
-            </div>
-            <div class="summary-card balance" id="balance-summary-card">
-                <span class="card-title">Monthly Balance</span>
-                <span class="card-amount">₹ 0</span>
-            </div>
-        </div>
-
-        <!-- Row 2: Split Layout -->
-        <div class="dashboard-main-grid">
-            <!-- Expense Breakdown Card -->
-            <div class="dashboard-card breakdown-card">
-                <div class="card-header">
-                    <h3>Expense Breakdown</h3>
-                </div>
-                <div class="chart-content">
-                    <div class="chart-wrapper">
-                        <canvas id="expenseDonutChart"></canvas>
-                        <div class="donut-center-info">
-                            <span class="total-spent-amount">₹ 0</span>
-                            <span class="total-spent-label">Spent</span>
-                        </div>
-                    </div>
-                    <div class="chart-legend" id="chart-legend">
-                        <!-- Legend items injected by JS -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Transactions Card -->
-            <div class="dashboard-card recent-tx-card">
-                <div class="card-header">
-                    <h3>Recent Transactions</h3>
-                    <a href="../transactions/index.html" id="view-all-tx" class="view-all-link">View all →</a>
-                </div>
-                <div class="recent-tx-list" id="recent-transactions-list">
-                    <!-- Transactions injected by JS -->
-                </div>
-            </div>
-        </div>
-    </div>
-</main>
-
-<!-- =======================
-     Scripts
-======================= -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="../../js/utils/date-update.js"></script>
-<script src="../../js/utils/sidebar-utils.js"></script>
-<script src="../../js/pages/settings.js"></script>
-<script src="../../js/pages/dashboard.js"></script>
-
 </body>
 
 </html>

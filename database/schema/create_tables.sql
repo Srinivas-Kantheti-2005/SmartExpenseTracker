@@ -114,6 +114,7 @@ CREATE INDEX idx_transactions_category ON transactions(category_id);
 CREATE TABLE budgets (
     id VARCHAR(36) PRIMARY KEY,
     user_id VARCHAR(36) NOT NULL,
+    email VARCHAR(255), -- Added per user request for isolation visibility
     category_id VARCHAR(36) NOT NULL,
     budget_amount DECIMAL(15, 2) NOT NULL CHECK (budget_amount > 0),
     spent_amount DECIMAL(15, 2) DEFAULT 0,
