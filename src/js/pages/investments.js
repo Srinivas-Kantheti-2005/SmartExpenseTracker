@@ -231,7 +231,7 @@ console.log('Investments.js loaded');
             const investmentTypeId = investmentType ? investmentType.id : null;
 
             // 2. Fetch All Categories
-            const catData = await fetchWithFallback('categories');
+            const catData = await fetchWithFallback(`categories?email=${currentUser.email}`);
             const categories = Array.isArray(catData) ? catData : (catData.data || []);
 
             // 3. Filter for Investment Categories
@@ -247,7 +247,7 @@ console.log('Investments.js loaded');
 
 
             // 4. Fetch All Items
-            const itemsDataRaw = await fetchWithFallback('items');
+            const itemsDataRaw = await fetchWithFallback(`items?email=${currentUser.email}`);
             const itemsList = Array.isArray(itemsDataRaw) ? itemsDataRaw : (itemsDataRaw.data || []);
 
             allItems = itemsList;
@@ -561,6 +561,8 @@ console.log('Investments.js loaded');
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
+                    userId: currentUser.id,
+                    email: currentUser.email,
                     date,
                     category_id: catId,
                     item_id: itemId || null,
@@ -602,6 +604,7 @@ console.log('Investments.js loaded');
 
         const payload = {
             userId: currentUser.id,
+            email: currentUser.email,
             type: 'investment',
             category_id: categoryId,
             item_id: itemId || null,

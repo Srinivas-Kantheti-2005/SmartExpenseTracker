@@ -42,163 +42,190 @@
       "id": "cat_1",
       "typeId": "type_1",
       "name": "Salary",
-      "icon": "💰"
+      "icon": "💰",
+      "color": "#2ECC71"
     },
     {
       "id": "cat_2",
       "typeId": "type_1",
       "name": "Business",
-      "icon": "🏢"
+      "icon": "🏢",
+      "color": "#27AE60"
     },
     {
       "id": "cat_3",
       "typeId": "type_1",
       "name": "Freelance",
-      "icon": "💻"
+      "icon": "💻",
+      "color": "#6FCF97"
     },
     {
       "id": "cat_4",
       "typeId": "type_1",
       "name": "Interest",
-      "icon": "🏦"
+      "icon": "🏦",
+      "color": "#7CB342"
     },
     {
       "id": "cat_5",
       "typeId": "type_1",
       "name": "Rental Income",
-      "icon": "🏠"
+      "icon": "🏠",
+      "color": "#16A085"
     },
     {
       "id": "cat_6",
       "typeId": "type_1",
       "name": "Other Income",
-      "icon": "➕"
+      "icon": "➕",
+      "color": "#A8E6CF"
     },
     {
       "id": "cat_7",
       "typeId": "type_2",
       "name": "Food & Dining",
-      "icon": "🍔"
+      "icon": "🍔",
+      "color": "#F4A261"
     },
     {
       "id": "cat_8",
       "typeId": "type_2",
       "name": "Transport",
-      "icon": "🚌"
+      "icon": "🚌",
+      "color": "#9B7EDE"
     },
     {
       "id": "cat_9",
       "typeId": "type_2",
       "name": "Housing",
-      "icon": "🏠"
+      "icon": "🏠",
+      "color": "#A68A64"
     },
     {
       "id": "cat_10",
       "typeId": "type_2",
       "name": "Bills & Utilities",
-      "icon": "🧾"
+      "icon": "🧾",
+      "color": "#E76F51"
     },
     {
       "id": "cat_11",
       "typeId": "type_2",
       "name": "Shopping",
-      "icon": "🛍️"
+      "icon": "🛍️",
+      "color": "#E9C46A"
     },
     {
       "id": "cat_12",
       "typeId": "type_2",
       "name": "Health & Medical",
-      "icon": "💊"
+      "icon": "💊",
+      "color": "#2A9D8F"
     },
     {
       "id": "cat_13",
       "typeId": "type_2",
       "name": "Education",
-      "icon": "📚"
+      "icon": "📚",
+      "color": "#4CC9F0"
     },
     {
       "id": "cat_14",
       "typeId": "type_2",
       "name": "Entertainment",
-      "icon": "🎬"
+      "icon": "🎬",
+      "color": "#6C91C2"
     },
     {
       "id": "cat_15",
       "typeId": "type_2",
       "name": "Personal Care",
-      "icon": "💇"
+      "icon": "💇",
+      "color": "#F2A1C7"
     },
     {
       "id": "cat_16",
       "typeId": "type_2",
       "name": "Travel",
-      "icon": "✈️"
+      "icon": "✈️",
+      "color": "#577590"
     },
     {
       "id": "cat_17",
       "typeId": "type_2",
       "name": "Gifts & Donations",
-      "icon": "🎁"
+      "icon": "🎁",
+      "color": "#B983FF"
     },
     {
       "id": "cat_18",
       "typeId": "type_2",
       "name": "EMIs / Loans",
-      "icon": "💳"
+      "icon": "💳",
+      "color": "#8D99AE"
     },
     {
       "id": "cat_19",
       "typeId": "type_2",
       "name": "Others",
-      "icon": "🔹"
+      "icon": "🔹",
+      "color": "#CED4DA"
     },
     {
       "id": "cat_20",
       "typeId": "type_3",
-      "name": "Stocks",
-      "icon": "📈"
+      "name": "Stocks (Equity)",
+      "icon": "📈",
+      "color": "#2563EB"
     },
     {
       "id": "cat_21",
       "typeId": "type_3",
       "name": "Mutual Funds",
-      "icon": "📊"
+      "icon": "📊",
+      "color": "#3B82F6"
     },
     {
       "id": "cat_22",
       "typeId": "type_3",
       "name": "Gold",
-      "icon": "🪙"
+      "icon": "🪙",
+      "color": "#64748B"
     },
     {
       "id": "cat_23",
       "typeId": "type_3",
       "name": "Crypto",
-      "icon": "₿"
+      "icon": "₿",
+      "color": "#4F46E5"
     },
     {
       "id": "cat_24",
       "typeId": "type_3",
       "name": "Fixed Deposit",
-      "icon": "🏦"
+      "icon": "🏦",
+      "color": "#1E40AF"
     },
     {
       "id": "cat_25",
       "typeId": "type_3",
       "name": "Real Estate",
-      "icon": "🏙️"
+      "icon": "🏙️",
+      "color": "#475569"
     },
     {
       "id": "cat_26",
       "typeId": "type_3",
       "name": "Other Investments",
-      "icon": "📑"
+      "icon": "📑",
+      "color": "#94A3B8"
     },
     {
       "name": "Test Cat",
       "icon": "",
       "typeId": "type_2",
-      "id": "c9321009-a182-4130-8d7f-e798b24b89df"
+      "id": "c9321009-a182-4130-8d7f-e798b24b89df",
+      "color": "#CCCCCC"
     }
   ],
   "subcategories": [

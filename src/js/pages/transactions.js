@@ -128,11 +128,11 @@ console.log('Transactions.js loaded');
             });
 
             // Categories
-            const catRes = await fetch(`${API_BASE}/categories`, { headers: getAuthHeaders() });
+            const catRes = await fetch(`${API_BASE}/categories?email=${currentUser.email}`, { headers: getAuthHeaders() });
             allCategories = await catRes.json();
 
             // Items
-            const itemsRes = await fetch(`${API_BASE}/items`, { headers: getAuthHeaders() });
+            const itemsRes = await fetch(`${API_BASE}/items?email=${currentUser.email}`, { headers: getAuthHeaders() });
             allItems = await itemsRes.json();
 
             // Filters
@@ -482,7 +482,8 @@ console.log('Transactions.js loaded');
 
         const payload = {
             userId: currentUser.id, type, date, amount, description,
-            category_id: categoryId, item_id: itemId || null
+            category_id: categoryId, item_id: itemId || null,
+            email: currentUser.email // Link to email
         };
 
         try {
@@ -519,7 +520,8 @@ console.log('Transactions.js loaded');
 
         const payload = {
             userId: currentUser.id, type, date, amount, description,
-            category_id: categoryId, item_id: itemId || null
+            category_id: categoryId, item_id: itemId || null,
+            email: currentUser.email // Link to email
         };
 
         try {

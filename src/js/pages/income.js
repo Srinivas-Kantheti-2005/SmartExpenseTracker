@@ -214,7 +214,7 @@ console.log('Income.js loaded');
             const incomeTypeId = incomeType ? incomeType.id : 'type-1';
 
             // 2. Fetch All Categories
-            const catData = await fetchWithFallback('categories');
+            const catData = await fetchWithFallback(`categories?email=${currentUser.email}`);
             const categories = Array.isArray(catData) ? catData : (catData.data || []);
 
             // 3. Filter for Income Categories
@@ -224,7 +224,7 @@ console.log('Income.js loaded');
             });
 
             // 4. Fetch All Items
-            const itemsDataRaw = await fetchWithFallback('items');
+            const itemsDataRaw = await fetchWithFallback(`items?email=${currentUser.email}`);
             const itemsList = Array.isArray(itemsDataRaw) ? itemsDataRaw : (itemsDataRaw.data || []);
 
             allItems = itemsList;
@@ -723,6 +723,8 @@ console.log('Income.js loaded');
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
+                    userId: currentUser.id,
+                    email: currentUser.email,
                     date,
                     category_id: catId,
                     item_id: itemId || null,
@@ -764,6 +766,7 @@ console.log('Income.js loaded');
 
         const payload = {
             userId: currentUser.id,
+            email: currentUser.email,
             type: 'income',
             category_id: categoryId,
             item_id: itemId || null,

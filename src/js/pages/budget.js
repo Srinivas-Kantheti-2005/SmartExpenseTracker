@@ -188,7 +188,7 @@ console.log('Budget.js loaded');
             const expenseTypeId = expenseType ? expenseType.id : 'type-2'; // Default fallback
 
             // 2. Fetch All Categories
-            const res = await fetch(`${BUDGET_API_BASE}/categories`, {
+            const res = await fetch(`${BUDGET_API_BASE}/categories?email=${currentUser.email}`, {
                 headers: getAuthHeaders()
             });
             const data = await res.json();
@@ -203,7 +203,7 @@ console.log('Budget.js loaded');
             }
 
             // 4. Fetch All Items
-            const itemsRes = await fetch(`${BUDGET_API_BASE}/items`, { headers: getAuthHeaders() });
+            const itemsRes = await fetch(`${BUDGET_API_BASE}/items?email=${currentUser.email}`, { headers: getAuthHeaders() });
             const itemsData = await itemsRes.json();
             if (Array.isArray(itemsData)) {
                 allItems = itemsData;
@@ -310,7 +310,7 @@ console.log('Budget.js loaded');
     async function loadBudgets() {
         if (!currentUser) return;
         try {
-            const res = await fetch(`${BUDGET_API_BASE}/budgets?month=${currentMonth}&year=${currentYear}`, {
+            const res = await fetch(`${BUDGET_API_BASE}/budgets?userId=${currentUser.id}&month=${currentMonth}&year=${currentYear}`, {
                 headers: getAuthHeaders()
             });
             const data = await res.json();
@@ -478,6 +478,8 @@ console.log('Budget.js loaded');
         }
 
         const payload = {
+            userId: currentUser.id,
+            email: currentUser.email,
             category_id: categoryId,
             item_id: itemId || null, // Include item_id
             amount: parseInt(amount),
@@ -553,6 +555,8 @@ console.log('Budget.js loaded');
         }
 
         const payload = {
+            userId: currentUser.id,
+            email: currentUser.email,
             category_id: catId,
             item_id: itemId || null,
             amount: parseInt(amount),

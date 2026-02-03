@@ -118,8 +118,12 @@ function setCurrentUser(user) {
     // Remove password before storing in session
     const safeUser = { ...user };
     delete safeUser.password;
-    localStorage.setItem('user', JSON.stringify(safeUser));
+
+    const userString = JSON.stringify(safeUser);
+    localStorage.setItem('user', userString);
+    sessionStorage.setItem('user', userString); // Backup for session
     localStorage.setItem('isLoggedIn', 'true');
+    sessionStorage.setItem('isLoggedIn', 'true');
 }
 
 // Get current logged in user
@@ -289,10 +293,21 @@ if (loginForm) {
                 // Save to session
                 setCurrentUser(user);
 
+                // Verify storage
+                const savedUser = localStorage.getItem('user');
+                if (!savedUser) {
+                    alert("Critical Error: Failed to save login session. Please implement a fix or check browser settings.");
+                    console.error("LocalStorage write failed.");
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = "Login";
+                    return;
+                }
+
                 showToast("Login successful! Redirecting...", "success");
 
                 setTimeout(() => {
-                    window.location.href = "../dashboard/index.html";
+                    console.log("Redirecting to dashboard...");
+                    window.location.replace("../dashboard/index.html");
                 }, 1000);
             }
         } catch (error) {
@@ -390,6 +405,10 @@ if (registerForm) {
             // Save user
             await saveUser(newUser);
 
+            // Seed default data
+            if (registerBtn) registerBtn.textContent = "Setting up account...";
+            await seedDefaultData(newUser.email);
+
             // Show success and redirect
             if (registerBtn) {
                 registerBtn.disabled = true;
@@ -407,6 +426,118 @@ if (registerForm) {
             showToast("Connection failed. Is the server running?", "error");
         }
     });
+}
+
+/* ----- Default Data Seeding ----- */
+
+const DEFAULT_DATA = {
+    income: [
+        { name: 'Salary', icon: '💼', color: '#2ECC71', items: ['Monthly Salary', 'Bonus', 'Incentives'] },
+        { name: 'Business', icon: '🏢', color: '#27AE60', items: ['Business Profit', 'Side Business'] },
+        { name: 'Freelance', icon: '💻', color: '#6FCF97', items: ['Client Work', 'Contract Work'] },
+        { name: 'Interest', icon: '📈', color: '#7CB342', items: ['Bank Interest', 'FD Interest'] },
+        { name: 'Rental Income', icon: '🏡', color: '#16A085', items: ['House Rent', 'Shop Rent'] },
+        { name: 'Other Income', icon: '🧾', color: '#A8E6CF', items: ['Cashback', 'Refunds'] }
+    ],
+    expense: [
+        { name: 'Food & Dining', icon: '🍽️', color: '#F4A261', items: ['Groceries', 'Restaurants', 'Snacks', 'Food Delivery'] },
+        { name: 'Transport', icon: '🚗', color: '#9B7EDE', items: ['Fuel', 'Ride Hailing', 'Public Transport', 'Vehicle Maintenance'] },
+        { name: 'Housing', icon: '🏡', color: '#A68A64', items: ['Rent', 'Maintenance', 'Electricity', 'Water'] },
+        { name: 'Bills & Utilities', icon: '🧾', color: '#E76F51', items: ['Mobile Recharge', 'Internet', 'Gas', 'DTH / Cable', 'Subscriptions'] },
+        { name: 'Shopping', icon: '🛍️', color: '#E9C46A', items: ['Clothes', 'Accessories', 'Online Shopping'] },
+        { name: 'Health & Medical', icon: '🏥', color: '#2A9D8F', items: ['Doctor Visits', 'Medicines', 'Insurance Premiums'] },
+        { name: 'Education', icon: '🎓', color: '#4CC9F0', items: ['School / College Fees', 'Courses', 'Books'] },
+        { name: 'Entertainment', icon: '🎬', color: '#6C91C2', items: ['Movies', 'Games', 'Events'] },
+        { name: 'Personal Care', icon: '💆', color: '#F2A1C7', items: ['Salon', 'Grooming', 'Cosmetics', 'Fitness / Gym'] },
+        { name: 'Travel', icon: '✈️', color: '#577590', items: ['Trips', 'Hotels', 'Transport'] },
+        { name: 'Gifts & Donations', icon: '🎁', color: '#B983FF', items: ['Gifts', 'Charity'] },
+        { name: 'EMIs / Loans', icon: '🏦', color: '#8D99AE', items: ['Education Loan', 'Personal Loan', 'Credit Card EMI'] },
+        { name: 'Others', icon: '📌', color: '#CED4DA', items: ['Miscellaneous', 'Uncategorized Expenses'] }
+    ],
+    investment: [
+        { name: 'Stocks', icon: '📊', color: '#2563EB', items: ['Equity', 'IPO'] },
+        { name: 'Mutual Funds', icon: '🧺', color: '#3B82F6', items: ['SIP', 'Lump Sum'] },
+        { name: 'Gold', icon: '⚱️', color: '#64748B', items: ['Physical Gold', 'Digital Gold'] },
+        { name: 'Crypto', icon: '₿', color: '#4F46E5', items: ['Bitcoin', 'Altcoins'] },
+        { name: 'Fixed Deposit', icon: '🏦', color: '#1E40AF', items: ['Bank FD', 'Corporate FD'] },
+        { name: 'Real Estate', icon: '🏘️', color: '#475569', items: ['Land', 'Property'] },
+        { name: 'Other Investments', icon: '🗃️', color: '#94A3B8', items: ['Bonds', 'PPF / NPS'] }
+    ]
+};
+
+async function seedDefaultData(email) {
+    try {
+        // 1. Fetch Types to get IDs
+        const typesRes = await fetch('http://localhost:3004/types');
+        const types = await typesRes.json();
+
+        const typeMap = {
+            'income': types.find(t => t.name.toLowerCase() === 'income')?.id,
+            'expense': types.find(t => t.name.toLowerCase() === 'expense')?.id,
+            'investment': types.find(t => t.name.toLowerCase() === 'investment')?.id
+        };
+
+        const batchCategories = [];
+        const batchItems = [];
+
+        // 2. Prepare Categories and Items
+        for (const [typeKey, cats] of Object.entries(DEFAULT_DATA)) {
+            const typeId = typeMap[typeKey];
+            if (!typeId) continue;
+
+            cats.forEach(cat => {
+                const catId = generateUUID();
+
+                // Add Category
+                batchCategories.push({
+                    id: catId,
+                    typeId: typeId,
+                    name: cat.name,
+                    icon: cat.icon,
+                    color: cat.color,
+                    email: email
+                });
+
+                // Add Items (Subcategories) for this Category
+                if (cat.items && Array.isArray(cat.items)) {
+                    cat.items.forEach(itemName => {
+                        batchItems.push({
+                            id: generateUUID(),
+                            name: itemName,
+                            categoryId: catId,
+                            email: email
+                        });
+                    });
+                }
+            });
+        }
+
+        // 3. Post Categories
+        const catPromises = batchCategories.map(cat =>
+            fetch('http://localhost:3004/categories', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(cat)
+            })
+        );
+        await Promise.all(catPromises);
+
+        // 4. Post Items
+        const itemPromises = batchItems.map(item =>
+            fetch('http://localhost:3004/items', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(item)
+            })
+        );
+        await Promise.all(itemPromises);
+
+        console.log(`Seeded ${batchCategories.length} categories and ${batchItems.length} items for ${email}`);
+
+    } catch (e) {
+        console.error("Error seeding data:", e);
+        // Don't block registration if seeding fails, just log it
+    }
 }
 
 /* ----- Show/Hide Password Toggle ----- */

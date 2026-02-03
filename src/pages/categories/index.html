@@ -19,35 +19,7 @@
 <body>
 
     <!-- Sidebar -->
-    <aside class="sidebar">
-        <nav class="sidebar-menu">
-            <a href="../dashboard/index.html" class="menu-item"><span class="icon">🏠</span><span
-                    class="label">Dashboard</span></a>
-            <a href="../transactions/index.html" class="menu-item"><span class="icon">💳</span><span
-                    class="label">Transactions</span></a>
-            <a href="../income/index.html" class="menu-item"><span class="icon">💸</span><span
-                    class="label">Income</span></a>
-            <a href="../investments/index.html" class="menu-item"><span class="icon">📈</span><span
-                    class="label">Investments</span></a>
-            <a href="../budget/index.html" class="menu-item"><span class="icon">💰</span><span
-                    class="label">Budget</span></a>
-            <a href="../analytics/index.html" class="menu-item"><span class="icon">📊</span><span
-                    class="label">Analytics</span></a>
-            <a href="../networth/index.html" class="menu-item"><span class="icon">💎</span><span class="label">Net
-                    Worth</span></a>
-            <a href="../categories/index.html" class="menu-item active"><span class="icon">📁</span><span
-                    class="label">Categories</span></a>
-
-            <div class="sidebar-separator"></div>
-
-            <a href="../profile/index.html" class="menu-item"><span class="icon">👤</span><span
-                    class="label">Profile</span></a>
-            <a href="../settings/index.html" class="menu-item"><span class="icon">⚙️</span><span
-                    class="label">Settings</span></a>
-            <a href="../auth/login.html" class="menu-item logout-item"><span class="icon">🚪</span><span
-                    class="label">Logout</span></a>
-        </nav>
-    </aside>
+    <aside class="sidebar"></aside>
 
     <!-- Top Header -->
     <header class="top-header">
@@ -104,7 +76,7 @@
 
     <!-- Generic Modal -->
     <div id="categoryModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-content" style="max-width: 300px; width: 100%;">
             <div class="modal-header">
                 <h3 id="modalTitle">Add Category</h3>
                 <span class="modal-close">&times;</span>
@@ -115,22 +87,42 @@
                     <input type="hidden" id="parentType"> <!-- 'type' or 'category' -->
                     <input type="hidden" id="parentId">
 
-                    <div style="display: flex; gap: 20px; align-items: flex-start;">
-                        <!-- Icon field only for Categories, hidden for Subcategories -->
-                        <div class="form-group" id="icon-group">
-                            <label for="itemIcon">Icon</label>
-                            <input type="text" id="itemIcon" class="form-control" placeholder="Add Icon"
-                                style="width: 100px; text-align: center;">
+                    <!-- First Row: Icon and Color -->
+                    <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px;">
+
+                        <!-- Icon Field -->
+                        <div class="form-group" id="icon-group"
+                            style="display: flex; flex-direction: column; gap: 8px;">
+                            <label for="itemIcon" style="font-weight: 500;">Icon</label>
+                            <input type="text" id="itemIcon" class="form-control" placeholder="Icon"
+                                style="width: 80px; text-align: center; height: 42px; padding: 0 8px; font-weight: 600;">
                         </div>
 
-                        <div class="form-group" style="flex: 1;">
-                            <label for="itemName">Name</label>
-                            <input type="text" id="itemName" class="form-control" required placeholder="Add Item">
+                        <!-- Color Field -->
+                        <div class="form-group" id="color-group"
+                            style="display: flex; flex-direction: column; gap: 8px;">
+                            <label style="font-weight: 500;">Color</label>
+                            <!-- Input Wrapper -->
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <input type="text" id="itemColorHex" class="form-control" placeholder="#HEXCODE"
+                                    style="width: 100px; height: 42px; text-transform: uppercase; padding: 0 12px; font-weight: 600;">
+                                <div style="position: relative; width: 42px; height: 42px; flex-shrink: 0;">
+                                    <input type="color" id="itemColor" value="#4f46e5"
+                                        style="width: 100%; height: 100%; border: none; padding: 0; background: none; cursor: pointer; border-radius: 8px; overflow: hidden;">
+                                </div>
+                            </div>
                         </div>
+
+                    </div>
+
+                    <!-- Second Row: Name -->
+                    <div class="form-group" style="display: flex; flex-direction: column; gap: 8px;">
+                        <label for="itemName" style="font-weight: 500;">Name</label>
+                        <input type="text" id="itemName" class="form-control" required placeholder="Add Item"
+                            style="width: 250px; height: 42px; padding: 0 12px; font-weight: 600;">
                     </div>
                 </div>
-                <div class="modal-footer"
-                    style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
                     <button type="button" class="btn-secondary close-modal-btn"
                         style="padding: 8px 16px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; cursor: pointer;">Cancel</button>
                     <button type="submit" class="btn-primary"
@@ -159,6 +151,7 @@
     </div>
 
     <script src="../../js/utils/date-update.js"></script>
+    <script src="../../js/utils/sidebar-utils.js"></script>
     <script src="../../js/utils/header-utils.js"></script>
     <script src="../../js/pages/categories.js"></script>
 </body>
