@@ -7,18 +7,7 @@ const { generateUUID } = require('../utils/helpers');
 
 const CategoryModel = {
     /**
-     * Get all default categories
-     */
-    getDefaults() {
-        return query(`
-            SELECT * FROM categories 
-            WHERE is_default = 1 AND parent_id IS NULL AND is_active = 1
-            ORDER BY name
-        `);
-    },
-
-    /**
-     * Get categories with subcategories
+     * Get all categories with subcategories
      */
     getAllWithSubcategories(userId = null) {
         const categories = query(`

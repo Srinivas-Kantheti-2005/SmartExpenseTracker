@@ -27,5 +27,13 @@
   "devDependencies": {
     "json-server": "^0.17.4",
     "live-server": "^1.2.0"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^12.6.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3"
   }
 }

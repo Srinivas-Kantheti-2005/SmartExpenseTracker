@@ -1,7 +1,21 @@
 /* Category Header Card */
+html,
+body {
+    height: 100%;
+}
+
 body {
     background: #f3f4f6;
     min-height: 100vh;
+}
+
+/* Reduce sidebar menu spacing to match other pages */
+.sidebar-menu {
+    gap: 2px !important;
+}
+
+.menu-item {
+    padding: 10px 0 !important;
 }
 
 .category-header-card {

@@ -4,82 +4,85 @@
 
 const express = require('express');
 const router = express.Router();
-const TransactionModel = require('../models/transaction.model');
+const { query } = require('../config/db');
 const { authenticate } = require('../middleware/auth.middleware');
 
 // GET /api/analytics/summary
 router.get('/summary', authenticate, (req, res) => {
-    const now = new Date();
-    const { month = now.getMonth() + 1, year = now.getFullYear() } = req.query;
+    const { startDate, endDate } = req.query;
+    const userId = req.user.id;
 
-    const summary = TransactionModel.getMonthlySummary(req.user.id, parseInt(month), parseInt(year));
+    let sql = `
+        SELECT 
+            type,
+            SUM(amount) as total,
+            COUNT(*) as count
+        FROM transactions 
+        WHERE user_id = ?
+    `;
+    const params = [userId];
 
-    const balance = summary.total_income - summary.total_expense;
-    const savingsRate = summary.total_income > 0
-        ? ((summary.total_income - summary.total_expense) / summary.total_income * 100).toFixed(1)
-        : 0;
-
-    res.json({
-        success: true,
-        data: {
-            total_income: summary.total_income,
-            total_expense: summary.total_expense,
-            balance,
-            savings_rate: parseFloat(savingsRate),
-            month: parseInt(month),
-            year: parseInt(year)
-        }
-    });
-});
-
-// GET /api/analytics/category-wise
-router.get('/category-wise', authenticate, (req, res) => {
-    const now = new Date();
-    const { month = now.getMonth() + 1, year = now.getFullYear() } = req.query;
-
-    const breakdown = TransactionModel.getCategoryBreakdown(req.user.id, parseInt(month), parseInt(year));
-
-    const total = breakdown.reduce((sum, cat) => sum + cat.amount, 0);
-
-    const data = breakdown.map(cat => ({
-        ...cat,
-        percentage: total > 0 ? parseFloat((cat.amount / total * 100).toFixed(1)) : 0
-    }));
-
-    res.json({
-        success: true,
-        data
-    });
-});
-
-// GET /api/analytics/trends
-router.get('/trends', authenticate, (req, res) => {
-    const { months = 6, period = 'monthly' } = req.query;
-
-    // Get last N months of data
-    const trends = [];
-    const now = new Date();
-
-    for (let i = parseInt(months) - 1; i >= 0; i--) {
-        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-
-        const summary = TransactionModel.getMonthlySummary(req.user.id, month, year);
-
-        trends.push({
-            month,
-            year,
-            label: date.toLocaleString('default', { month: 'short', year: 'numeric' }),
-            income: summary.total_income,
-            expense: summary.total_expense,
-            balance: summary.total_income - summary.total_expense
-        });
+    if (startDate) {
+        sql += ' AND date >= ?';
+        params.push(startDate);
     }
 
+    if (endDate) {
+        sql += ' AND date <= ?';
+        params.push(endDate);
+    }
+
+    sql += ' GROUP BY type';
+
+    const summary = query(sql, params);
+
     res.json({
         success: true,
-        data: trends
+        data: summary
+    });
+});
+
+// GET /api/analytics/category-breakdown
+router.get('/category-breakdown', authenticate, (req, res) => {
+    const { type, startDate, endDate } = req.query;
+    const userId = req.user.id;
+
+    let sql = `
+        SELECT 
+            c.id as category_id,
+            c.name as category_name,
+            c.icon,
+            c.color,
+            SUM(t.amount) as total,
+            COUNT(t.id) as count
+        FROM transactions t
+        JOIN categories c ON t.category_id = c.id
+        WHERE t.user_id = ?
+    `;
+    const params = [userId];
+
+    if (type) {
+        sql += ' AND t.type = ?';
+        params.push(type);
+    }
+
+    if (startDate) {
+        sql += ' AND t.date >= ?';
+        params.push(startDate);
+    }
+
+    if (endDate) {
+        sql += ' AND t.date <= ?';
+        params.push(endDate);
+    }
+
+    sql += ' GROUP BY c.id, c.name, c.icon, c.color ORDER BY total DESC';
+
+    const breakdown = query(sql, params);
+
+    res.json({
+        success: true,
+        data: breakdown
     });
 });
 

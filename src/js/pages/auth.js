@@ -57,64 +57,59 @@ function generateUUID() {
     });
 }
 
-const DB_URL = "http://localhost:3004/users";
+const API_BASE = window.API_BASE_URL || 'http://localhost:5001/api';
 
 /* ----- User Storage Functions (Now using JSON Server) ----- */
 
-// Get all registered users (Async)
-async function getUsers() {
-    try {
-        const response = await fetch(DB_URL);
-        if (!response.ok) throw new Error('Failed to fetch users');
-        return await response.json();
-    } catch (e) {
-        console.error('Error reading users:', e);
-        showToast("Database connection error. Is the server running?", "error");
-        return [];
-    }
-}
+// NOTE: User management now handled through backend API
+// No need to get all users - authentication is server-side
 
-// Save user to storage (Async)
-async function saveUser(user) {
+// Register user via API
+async function registerUser(userData) {
     try {
-        const response = await fetch(DB_URL, {
+        const response = await fetch(`${API_BASE}/auth/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(user)
+            body: JSON.stringify(userData)
         });
 
-        if (!response.ok) throw new Error('Failed to save user');
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error?.message || 'Registration failed');
+        }
         return await response.json();
     } catch (e) {
-        console.error('Error saving user:', e);
+        console.error('Error registering user:', e);
         throw e;
     }
 }
 
-// Find user by email (Async)
-// Find user by email (Async)
-async function findUserByEmail(email) {
+// Login user via API
+async function loginUser(email, password) {
     try {
-        const response = await fetch(`${DB_URL}?email=${email}`);
-        if (!response.ok) throw new Error('Server error');
-        const users = await response.json();
-        return users.length > 0 ? users[0] : null;
+        const response = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error?.message || 'Login failed');
+        }
+        return await response.json();
     } catch (e) {
-        console.error('Error finding user:', e);
-        throw e; // Re-throw to handle in UI
+        console.error('Error logging in:', e);
+        throw e;
     }
 }
 
-// Check if email exists (Async)
-async function emailExists(email) {
-    const user = await findUserByEmail(email);
-    return user !== null;
-}
-
-// Set current logged in user
-function setCurrentUser(user) {
+// Set current logged in user and token
+function setCurrentUser(user, token) {
     // Remove password before storing in session
     const safeUser = { ...user };
     delete safeUser.password;
@@ -122,6 +117,7 @@ function setCurrentUser(user) {
     const userString = JSON.stringify(safeUser);
     localStorage.setItem('user', userString);
     sessionStorage.setItem('user', userString); // Backup for session
+    localStorage.setItem('token', token); // Store JWT token
     localStorage.setItem('isLoggedIn', 'true');
     sessionStorage.setItem('isLoggedIn', 'true');
 }
@@ -139,6 +135,7 @@ function getCurrentUser() {
 // Logout user
 function logoutUser() {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     localStorage.removeItem('isLoggedIn');
 }
 
@@ -256,50 +253,27 @@ if (loginForm) {
         }
 
         try {
-            // Find user
-            const user = await findUserByEmail(email);
-
-            if (!user) {
-                showToast("No account found with this email", "error");
-                return;
-            }
-
-            // Check password
-            if (user.password !== password) {
-                showToast("Incorrect password", "error");
-                return;
-            }
-
-            // Login successful
             if (loginBtn) {
                 loginBtn.disabled = true;
                 loginBtn.textContent = "Logging in...";
+            }
 
-                // Update last login timestamp
-                const lastLoginTime = new Date().toISOString();
-                user.lastLogin = lastLoginTime;
+            // Call backend API
+            const response = await loginUser(email, password);
 
-                // Update lastLogin in database
-                try {
-                    await fetch(`${DB_URL}/${user.id}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ lastLogin: lastLoginTime })
-                    });
-                } catch (error) {
-                    console.error('Failed to update last login:', error);
-                }
-
-                // Save to session
-                setCurrentUser(user);
+            if (response.success && response.data) {
+                // Save user and token to session
+                setCurrentUser(response.data.user, response.data.token);
 
                 // Verify storage
                 const savedUser = localStorage.getItem('user');
                 if (!savedUser) {
-                    alert("Critical Error: Failed to save login session. Please implement a fix or check browser settings.");
+                    alert("Critical Error: Failed to save login session. Please check browser settings.");
                     console.error("LocalStorage write failed.");
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = "Login";
+                    if (loginBtn) {
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = "Login";
+                    }
                     return;
                 }
 
@@ -311,8 +285,12 @@ if (loginForm) {
                 }, 1000);
             }
         } catch (error) {
-            showToast("Connection failed. Is the server running?", "error");
+            showToast(error.message || "Connection failed. Is the server running?", "error");
             console.error(error);
+            if (loginBtn) {
+                loginBtn.disabled = false;
+                loginBtn.textContent = "Login";
+            }
         }
     });
 }
@@ -377,43 +355,22 @@ if (registerForm) {
         }
 
         try {
-            // Check if email already exists
-            if (await emailExists(email)) {
-                showToast("An account with this email already exists", "warning");
-                return;
-            }
-
-            // Create user object following schema
-            const newUser = {
-                id: generateUUID(),
-                email: email.toLowerCase(),
-                password: password, // In production, this should be hashed
-                name: name,
-                phone: null,
-                avatar: null,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                lastLogin: null,
-                isActive: true,
-                settings: {
-                    currency: 'INR',
-                    theme: 'light',
-                    notifications: true
-                }
-            };
-
-            // Save user
-            await saveUser(newUser);
-
-            // Seed default data
-            if (registerBtn) registerBtn.textContent = "Setting up account...";
-            await seedDefaultData(newUser.email);
-
-            // Show success and redirect
             if (registerBtn) {
                 registerBtn.disabled = true;
                 registerBtn.textContent = "Creating account...";
+            }
 
+            // Create user object
+            const userData = {
+                name: name,
+                email: email.toLowerCase(),
+                password: password  // Backend will hash it
+            };
+
+            // Call backend API
+            const response = await registerUser(userData);
+
+            if (response.success && response.data) {
                 showToast("Account created successfully!", "success");
 
                 setTimeout(() => {
@@ -423,122 +380,18 @@ if (registerForm) {
 
         } catch (error) {
             console.error('Registration failed:', error);
-            showToast("Connection failed. Is the server running?", "error");
+            showToast(error.message || "Connection failed. Is the server running?", "error");
+            if (registerBtn) {
+                registerBtn.disabled = false;
+                registerBtn.textContent = "Register";
+            }
         }
     });
 }
 
 /* ----- Default Data Seeding ----- */
-
-const DEFAULT_DATA = {
-    income: [
-        { name: 'Salary', icon: '💼', color: '#2ECC71', items: ['Monthly Salary', 'Bonus', 'Incentives'] },
-        { name: 'Business', icon: '🏢', color: '#27AE60', items: ['Business Profit', 'Side Business'] },
-        { name: 'Freelance', icon: '💻', color: '#6FCF97', items: ['Client Work', 'Contract Work'] },
-        { name: 'Interest', icon: '📈', color: '#7CB342', items: ['Bank Interest', 'FD Interest'] },
-        { name: 'Rental Income', icon: '🏡', color: '#16A085', items: ['House Rent', 'Shop Rent'] },
-        { name: 'Other Income', icon: '🧾', color: '#A8E6CF', items: ['Cashback', 'Refunds'] }
-    ],
-    expense: [
-        { name: 'Food & Dining', icon: '🍽️', color: '#F4A261', items: ['Groceries', 'Restaurants', 'Snacks', 'Food Delivery'] },
-        { name: 'Transport', icon: '🚗', color: '#9B7EDE', items: ['Fuel', 'Ride Hailing', 'Public Transport', 'Vehicle Maintenance'] },
-        { name: 'Housing', icon: '🏡', color: '#A68A64', items: ['Rent', 'Maintenance', 'Electricity', 'Water'] },
-        { name: 'Bills & Utilities', icon: '🧾', color: '#E76F51', items: ['Mobile Recharge', 'Internet', 'Gas', 'DTH / Cable', 'Subscriptions'] },
-        { name: 'Shopping', icon: '🛍️', color: '#E9C46A', items: ['Clothes', 'Accessories', 'Online Shopping'] },
-        { name: 'Health & Medical', icon: '🏥', color: '#2A9D8F', items: ['Doctor Visits', 'Medicines', 'Insurance Premiums'] },
-        { name: 'Education', icon: '🎓', color: '#4CC9F0', items: ['School / College Fees', 'Courses', 'Books'] },
-        { name: 'Entertainment', icon: '🎬', color: '#6C91C2', items: ['Movies', 'Games', 'Events'] },
-        { name: 'Personal Care', icon: '💆', color: '#F2A1C7', items: ['Salon', 'Grooming', 'Cosmetics', 'Fitness / Gym'] },
-        { name: 'Travel', icon: '✈️', color: '#577590', items: ['Trips', 'Hotels', 'Transport'] },
-        { name: 'Gifts & Donations', icon: '🎁', color: '#B983FF', items: ['Gifts', 'Charity'] },
-        { name: 'EMIs / Loans', icon: '🏦', color: '#8D99AE', items: ['Education Loan', 'Personal Loan', 'Credit Card EMI'] },
-        { name: 'Others', icon: '📌', color: '#CED4DA', items: ['Miscellaneous', 'Uncategorized Expenses'] }
-    ],
-    investment: [
-        { name: 'Stocks', icon: '📊', color: '#2563EB', items: ['Equity', 'IPO'] },
-        { name: 'Mutual Funds', icon: '🧺', color: '#3B82F6', items: ['SIP', 'Lump Sum'] },
-        { name: 'Gold', icon: '⚱️', color: '#64748B', items: ['Physical Gold', 'Digital Gold'] },
-        { name: 'Crypto', icon: '₿', color: '#4F46E5', items: ['Bitcoin', 'Altcoins'] },
-        { name: 'Fixed Deposit', icon: '🏦', color: '#1E40AF', items: ['Bank FD', 'Corporate FD'] },
-        { name: 'Real Estate', icon: '🏘️', color: '#475569', items: ['Land', 'Property'] },
-        { name: 'Other Investments', icon: '🗃️', color: '#94A3B8', items: ['Bonds', 'PPF / NPS'] }
-    ]
-};
-
-async function seedDefaultData(email) {
-    try {
-        // 1. Fetch Types to get IDs
-        const typesRes = await fetch('http://localhost:3004/types');
-        const types = await typesRes.json();
-
-        const typeMap = {
-            'income': types.find(t => t.name.toLowerCase() === 'income')?.id,
-            'expense': types.find(t => t.name.toLowerCase() === 'expense')?.id,
-            'investment': types.find(t => t.name.toLowerCase() === 'investment')?.id
-        };
-
-        const batchCategories = [];
-        const batchItems = [];
-
-        // 2. Prepare Categories and Items
-        for (const [typeKey, cats] of Object.entries(DEFAULT_DATA)) {
-            const typeId = typeMap[typeKey];
-            if (!typeId) continue;
-
-            cats.forEach(cat => {
-                const catId = generateUUID();
-
-                // Add Category
-                batchCategories.push({
-                    id: catId,
-                    typeId: typeId,
-                    name: cat.name,
-                    icon: cat.icon,
-                    color: cat.color,
-                    email: email
-                });
-
-                // Add Items (Subcategories) for this Category
-                if (cat.items && Array.isArray(cat.items)) {
-                    cat.items.forEach(itemName => {
-                        batchItems.push({
-                            id: generateUUID(),
-                            name: itemName,
-                            categoryId: catId,
-                            email: email
-                        });
-                    });
-                }
-            });
-        }
-
-        // 3. Post Categories
-        const catPromises = batchCategories.map(cat =>
-            fetch('http://localhost:3004/categories', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(cat)
-            })
-        );
-        await Promise.all(catPromises);
-
-        // 4. Post Items
-        const itemPromises = batchItems.map(item =>
-            fetch('http://localhost:3004/items', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(item)
-            })
-        );
-        await Promise.all(itemPromises);
-
-        console.log(`Seeded ${batchCategories.length} categories and ${batchItems.length} items for ${email}`);
-
-    } catch (e) {
-        console.error("Error seeding data:", e);
-        // Don't block registration if seeding fails, just log it
-    }
-}
+// NOTE: Default categories are now seeded in the database
+// No need for frontend seeding - backend handles it
 
 /* ----- Show/Hide Password Toggle ----- */
 
@@ -585,8 +438,7 @@ if (typeof module !== 'undefined' && module.exports) {
         isValidEmail,
         validatePassword,
         validateName,
-        getUsers,
-        findUserByEmail,
-        emailExists
+        loginUser,
+        registerUser
     };
 }

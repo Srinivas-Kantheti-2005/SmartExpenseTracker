@@ -4,7 +4,7 @@
 console.log('Transactions.js loaded');
 
 (function () {
-    const API_BASE = window.API_BASE_URL || 'http://localhost:5000/api';
+    const API_BASE = window.API_BASE_URL || 'http://localhost:5001/api';
 
     // --- State ---
     const params = new URLSearchParams(window.location.search);
@@ -112,25 +112,39 @@ console.log('Transactions.js loaded');
 
     async function loadMetadata() {
         try {
-            // Types
-            const typesRes = await fetch(`${API_BASE}/types`, { headers: getAuthHeaders() });
-            allTypes = await typesRes.json();
+            // Fetch categories from new API (includes subcategories nested)
+            const catRes = await fetch(`${API_BASE}/categories`, { headers: getAuthHeaders() });
+            const catData = await catRes.json();
 
-            DB_TYPE_ID_MAP = {};
-            allTypes.forEach(t => {
-                const lowerName = t.name.toLowerCase();
-                if (lowerName.includes('income')) DB_TYPE_ID_MAP[t.id] = 'income';
-                else if (lowerName.includes('invest')) DB_TYPE_ID_MAP[t.id] = 'investment';
-                else DB_TYPE_ID_MAP[t.id] = 'expense';
+            if (!catData.success || !catData.data) {
+                throw new Error(catData.error?.message || 'Failed to load categories');
+            }
+
+            // Transform API data to match expected format
+            allCategories = [];
+            allItems = [];
+
+            catData.data.forEach(cat => {
+                // Parent category
+                allCategories.push({
+                    id: cat.id,
+                    name: cat.name,
+                    type: cat.type,
+                    icon: cat.icon,
+                    color: cat.color
+                });
+
+                // Subcategories (items)
+                if (cat.subcategories && cat.subcategories.length > 0) {
+                    cat.subcategories.forEach(sub => {
+                        allItems.push({
+                            id: sub.id,
+                            name: sub.name,
+                            categoryId: cat.id
+                        });
+                    });
+                }
             });
-
-            // Categories
-            const catRes = await fetch(`${API_BASE}/categories?email=${currentUser.email}`, { headers: getAuthHeaders() });
-            allCategories = await catRes.json();
-
-            // Items
-            const itemsRes = await fetch(`${API_BASE}/items?email=${currentUser.email}`, { headers: getAuthHeaders() });
-            allItems = await itemsRes.json();
 
             // Filters
             populateFilterCategoryDropdown();
@@ -153,13 +167,22 @@ console.log('Transactions.js loaded');
         const endDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${lastDay}`;
 
         try {
-            const url = `${API_BASE}/transactions?userId=${currentUser.id}&date_gte=${startDate}&date_lte=${endDate}&_sort=date&_order=desc`;
+            const url = `${API_BASE}/transactions?startDate=${startDate}&endDate=${endDate}`;
             const res = await fetch(url, { headers: getAuthHeaders() });
-            monthTransactions = await res.json();
+            const data = await res.json();
+
+            if (data.success && data.data) {
+                monthTransactions = data.data;
+            } else {
+                monthTransactions = [];
+                console.error('Failed to load transactions:', data.error);
+            }
 
             renderTransactions();
         } catch (error) {
             console.error('Error loading transactions:', error);
+            monthTransactions = [];
+            renderTransactions();
         }
     }
 

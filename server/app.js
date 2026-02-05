@@ -20,6 +20,8 @@ const categoriesRoutes = require('./routes/categories.routes');
 const budgetsRoutes = require('./routes/budgets.routes');
 const analyticsRoutes = require('./routes/analytics.routes');
 const networthRoutes = require('./routes/networth.routes');
+const typesRoutes = require('./routes/types.routes');
+const itemsRoutes = require('./routes/items.routes');
 
 // Initialize Express app
 const app = express();
@@ -38,7 +40,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({
     origin: NODE_ENV === 'production'
         ? 'https://smartexpense.com'
-        : 'http://localhost:3000',
+        : ['http://localhost:3000', 'http://127.0.0.1:3000'],
     credentials: true
 }));
 
@@ -55,6 +57,8 @@ app.use('/api/categories', categoriesRoutes);
 app.use('/api/budgets', budgetsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/networth', networthRoutes);
+app.use('/api/types', typesRoutes);
+app.use('/api/items', itemsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -69,7 +73,7 @@ app.get('/api/health', (req, res) => {
 // Serve Frontend (SPA fallback)
 // ==========================================
 
-app.get('*', (req, res) => {
+app.get(/^\/(?!api).*/, (req, res) => {
     res.sendFile(path.join(__dirname, '../src/pages/index.html'));
 });
 

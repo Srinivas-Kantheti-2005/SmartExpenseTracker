@@ -6,7 +6,7 @@
  */
 
 // Global Configuration
-window.API_BASE_URL = 'http://localhost:5000/api';
+window.API_BASE_URL = 'http://localhost:5001/api';
 
 window.getAuthHeaders = function () {
     const token = localStorage.getItem('token');

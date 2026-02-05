@@ -10,10 +10,7 @@ const { asyncHandler, AppError } = require('../middleware/error.middleware');
 
 // GET /api/budgets
 router.get('/', authenticate, (req, res) => {
-    const now = new Date();
-    const { month = now.getMonth() + 1, year = now.getFullYear() } = req.query;
-
-    const budgets = BudgetModel.getWithSpent(req.user.id, parseInt(month), parseInt(year));
+    const budgets = BudgetModel.findAll(req.user.id);
 
     res.json({
         success: true,
@@ -21,38 +18,35 @@ router.get('/', authenticate, (req, res) => {
     });
 });
 
-// GET /api/budgets/alerts
-router.get('/alerts', authenticate, (req, res) => {
-    const now = new Date();
-    const { month = now.getMonth() + 1, year = now.getFullYear() } = req.query;
-
-    const alerts = BudgetModel.getAlerts(req.user.id, parseInt(month), parseInt(year));
-
-    res.json({
-        success: true,
-        data: alerts
-    });
-});
-
 // POST /api/budgets
 router.post('/', authenticate, asyncHandler(async (req, res) => {
-    const { category_id, amount, month, year } = req.body;
+    const { category_id, amount, start_date, end_date } = req.body;
 
-    if (!category_id || !amount || !month || !year) {
-        throw new AppError('Category, amount, month and year are required', 400, 'VALIDATION_ERROR');
+    if (!category_id || !amount || !start_date || !end_date) {
+        throw new AppError('Category, amount, start date and end date are required', 400, 'VALIDATION_ERROR');
     }
 
-    if (amount <= 0) {
-        throw new AppError('Amount must be greater than 0', 400, 'VALIDATION_ERROR');
-    }
-
-    const budget = BudgetModel.upsert(req.user.id, req.body);
+    const budget = BudgetModel.create(req.user.id, req.body);
 
     res.status(201).json({
         success: true,
         data: budget
     });
 }));
+
+// PUT /api/budgets/:id
+router.put('/:id', authenticate, (req, res) => {
+    const budget = BudgetModel.update(req.params.id, req.user.id, req.body);
+
+    if (!budget) {
+        throw new AppError('Budget not found', 404, 'NOT_FOUND');
+    }
+
+    res.json({
+        success: true,
+        data: budget
+    });
+});
 
 // DELETE /api/budgets/:id
 router.delete('/:id', authenticate, (req, res) => {

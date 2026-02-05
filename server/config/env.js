@@ -6,7 +6,7 @@ require('dotenv').config();
 
 module.exports = {
     // Server
-    PORT: process.env.PORT || 5000,
+    PORT: process.env.PORT || 5001,
     NODE_ENV: process.env.NODE_ENV || 'development',
 
     // JWT
@@ -18,10 +18,6 @@ module.exports = {
 
     // Security
     BCRYPT_ROUNDS: parseInt(process.env.BCRYPT_ROUNDS) || 12,
-
-    // Rate Limiting
-    RATE_LIMIT_WINDOW: parseInt(process.env.RATE_LIMIT_WINDOW) || 15 * 60 * 1000, // 15 minutes
-    RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX) || 100,
 
     // Pagination
     DEFAULT_PAGE_SIZE: 20,

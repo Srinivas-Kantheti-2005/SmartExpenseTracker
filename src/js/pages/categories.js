@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3004';
+const API_URL = window.API_BASE_URL || 'http://localhost:5001/api';
 let currentType = null;
 let allTypes = [];
 let allCategories = [];
@@ -19,22 +19,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function fetchData() {
     try {
-        const [typesRes, catsRes, subsRes] = await Promise.all([
-            fetch(`${API_URL}/types`),
-            fetch(`${API_URL}/categories?email=${currentUser.email}`),
-            fetch(`${API_URL}/items?email=${currentUser.email}`)
-        ]);
+        // Fetch categories from new API (includes subcategories)
+        const categoriesResponse = await fetch(`${API_URL}/categories`);
+        if (!categoriesResponse.ok) throw new Error('Failed to fetch categories');
+        const categoriesData = await categoriesResponse.json();
 
-        allTypes = await typesRes.json();
-        allCategories = await catsRes.json();
-        allItems = await subsRes.json();
+        if (categoriesData.success && categoriesData.data) {
+            // New API returns categories with subcategories nested
+            // We need to flatten them into allCategories and allItems
+            allCategories = [];
+            allItems = [];
 
-        // Default to first type if not set or if current type was deleted
-        if ((!currentType || !allTypes.find(t => t.id === currentType.id)) && allTypes.length > 0) {
+            categoriesData.data.forEach(cat => {
+                // Parent category
+                allCategories.push({
+                    id: cat.id,
+                    name: cat.name,
+                    type: cat.type,
+                    icon: cat.icon,
+                    color: cat.color,
+                    is_default: cat.is_default
+                });
+
+                // Subcategories (items)
+                if (cat.subcategories && cat.subcategories.length > 0) {
+                    cat.subcategories.forEach(sub => {
+                        allItems.push({
+                            id: sub.id,
+                            name: sub.name,
+                            categoryId: cat.id
+                        });
+                    });
+                }
+            });
+        }
+
+        // Set up types
+        allTypes = [
+            { id: 'income', name: 'Income', icon: '💰' },
+            { id: 'expense', name: 'Expense', icon: '💸' },
+            { id: 'investment', name: 'Investment', icon: '📈' }
+        ];
+
+        // Default to first type
+        if (!currentType && allTypes.length > 0) {
             currentType = allTypes[0];
         }
     } catch (error) {
         console.error('Error fetching data:', error);
+        alert('Failed to load categories. Please refresh the page.');
     }
 }
 
@@ -89,8 +122,13 @@ function renderContent() {
 
     if (!currentType) return;
 
-    // Filter categories by current type
-    const typeCategories = allCategories.filter(cat => cat.typeId === currentType.id);
+    // Filter categories by current type (using type string, not typeId)
+    const typeCategories = allCategories.filter(cat => cat.type === currentType.id);
+
+    if (typeCategories.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No categories yet. Click "+ New Category" to add one.</p>';
+        return;
+    }
 
     typeCategories.forEach(category => {
         const card = createCategoryCard(category);

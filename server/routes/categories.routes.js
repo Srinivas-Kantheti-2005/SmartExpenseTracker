@@ -34,8 +34,8 @@ router.post('/', authenticate, asyncHandler(async (req, res) => {
         throw new AppError('Name and type are required', 400, 'VALIDATION_ERROR');
     }
 
-    if (!['income', 'expense'].includes(type)) {
-        throw new AppError('Type must be income or expense', 400, 'VALIDATION_ERROR');
+    if (!['income', 'expense', 'investment'].includes(type)) {
+        throw new AppError('Type must be income, expense, or investment', 400, 'VALIDATION_ERROR');
     }
 
     const category = CategoryModel.create(req.user.id, req.body);

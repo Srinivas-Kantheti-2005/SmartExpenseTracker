@@ -1,5 +1,5 @@
 /* ========================================
-   Auth Routes
+   Authentication Routes
    ======================================== */
 
 const express = require('express');
@@ -8,40 +8,52 @@ const jwt = require('jsonwebtoken');
 const UserModel = require('../models/user.model');
 const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config/env');
 const { asyncHandler, AppError } = require('../middleware/error.middleware');
-const { authenticate } = require('../middleware/auth.middleware');
-const { validateEmail, validatePassword } = require('../utils/validators');
+const { isValidEmail, isValidPassword } = require('../utils/validators');
 
 // POST /api/auth/register
 router.post('/register', asyncHandler(async (req, res) => {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password } = req.body;
 
     // Validation
     if (!name || !email || !password) {
-        throw new AppError('Name, email and password are required', 400, 'VALIDATION_ERROR');
+        throw new AppError('All fields are required', 400, 'VALIDATION_ERROR');
     }
 
-    if (!validateEmail(email)) {
+    if (!isValidEmail(email)) {
         throw new AppError('Invalid email format', 400, 'VALIDATION_ERROR');
     }
 
-    const passwordError = validatePassword(password);
-    if (passwordError) {
-        throw new AppError(passwordError, 400, 'VALIDATION_ERROR');
+    if (!isValidPassword(password)) {
+        throw new AppError('Password must be at least 6 characters', 400, 'VALIDATION_ERROR');
     }
 
-    // Check if email exists
-    const existing = UserModel.findByEmail(email);
-    if (existing) {
-        throw new AppError('Email already registered', 409, 'CONFLICT');
+    // Check if user exists
+    const existingUser = UserModel.findByEmail(email);
+    if (existingUser) {
+        throw new AppError('Email already registered', 409, 'USER_EXISTS');
     }
 
     // Create user
-    const user = await UserModel.create({ name, email, password, phone });
+    const user = await UserModel.create({ name, email, password });
+
+    // Generate token
+    const token = jwt.sign(
+        { id: user.id, email: user.email },
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRES_IN }
+    );
 
     res.status(201).json({
         success: true,
-        message: 'Registration successful',
-        data: UserModel.sanitize(user)
+        data: {
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                avatar: user.avatar_url
+            },
+            token
+        }
     });
 }));
 
@@ -56,72 +68,34 @@ router.post('/login', asyncHandler(async (req, res) => {
     // Find user
     const user = UserModel.findByEmail(email);
     if (!user) {
-        throw new AppError('Invalid credentials', 401, 'UNAUTHORIZED');
+        throw new AppError('Invalid credentials', 401, 'INVALID_CREDENTIALS');
     }
 
     // Verify password
     const isValid = await UserModel.verifyPassword(password, user.password_hash);
     if (!isValid) {
-        throw new AppError('Invalid credentials', 401, 'UNAUTHORIZED');
+        throw new AppError('Invalid credentials', 401, 'INVALID_CREDENTIALS');
     }
-
-    // Check if active
-    if (!user.is_active) {
-        throw new AppError('Account is deactivated', 401, 'UNAUTHORIZED');
-    }
-
-    // Update last login
-    UserModel.updateLastLogin(user.id);
 
     // Generate token
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
-
-    res.json({
-        success: true,
-        token,
-        user: UserModel.sanitize(user)
-    });
-}));
-
-// POST /api/auth/logout
-router.post('/logout', authenticate, (req, res) => {
-    // In a real app, you'd invalidate the token here
-    res.json({
-        success: true,
-        message: 'Logged out successfully'
-    });
-});
-
-// GET /api/auth/me
-router.get('/me', authenticate, (req, res) => {
-    const user = UserModel.findById(req.user.id);
-    const settings = UserModel.getSettings(req.user.id);
+    const token = jwt.sign(
+        { id: user.id, email: user.email },
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRES_IN }
+    );
 
     res.json({
         success: true,
         data: {
-            ...UserModel.sanitize(user),
-            settings
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                avatar: user.avatar_url
+            },
+            token
         }
     });
-});
-
-// PUT /api/auth/profile
-router.put('/profile', authenticate, asyncHandler(async (req, res) => {
-    const user = UserModel.update(req.user.id, req.body);
-    res.json({
-        success: true,
-        data: UserModel.sanitize(user)
-    });
 }));
-
-// PUT /api/auth/settings
-router.put('/settings', authenticate, (req, res) => {
-    const settings = UserModel.updateSettings(req.user.id, req.body);
-    res.json({
-        success: true,
-        data: settings
-    });
-});
 
 module.exports = router;
