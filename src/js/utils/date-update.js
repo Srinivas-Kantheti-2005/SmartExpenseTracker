@@ -102,6 +102,32 @@ function updateDateDisplay() {
     });
 }
 
+/**
+ * Initialize Header Calendar with today's date
+ */
+function initHeaderCalendar() {
+    const today = new Date();
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+    const dayEl = document.querySelector('.card-date .day');
+    const dateNoEl = document.querySelector('.card-date .date-no');
+    const monthEl = document.querySelector('.card-date .month');
+    const yearEl = document.querySelector('.card-date .year');
+
+    if (dayEl) dayEl.textContent = dayNames[today.getDay()];
+    if (dateNoEl) dateNoEl.textContent = String(today.getDate()).padStart(2, '0');
+    if (monthEl) monthEl.textContent = monthNames[today.getMonth()];
+    if (yearEl) yearEl.textContent = today.getFullYear();
+}
+
+// Auto-initialize when script loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHeaderCalendar);
+} else {
+    initHeaderCalendar();
+}
+
 // Export for module usage
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -112,6 +138,7 @@ if (typeof module !== 'undefined' && module.exports) {
         getMonthEnd,
         getMonthName,
         isToday,
-        updateDateDisplay
+        updateDateDisplay,
+        initHeaderCalendar
     };
 }

@@ -17,8 +17,44 @@ window.getAuthHeaders = function () {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
-    updateUserProfile();
+    renderHeader(); // 1. Render Structure
+    updateUserProfile(); // 2. Update Dynamic Data
 });
+
+/**
+ * Dynamically injects the global header structure
+ */
+function renderHeader() {
+    const headerEl = document.querySelector('header.top-header');
+    if (!headerEl) return;
+
+    headerEl.innerHTML = `
+        <div class="header-card card-logo">
+            <img src="../../assets/images/logo.png" alt="Logo">
+            <h3>Smart Expense Tracker</h3>
+        </div>
+        <div class="header-card card-date" id="header-calendar-trigger">
+            <span class="calendar-icon">🗓️</span>
+            <div class="date-info">
+                <span class="day"></span>
+                <span class="date-no"></span>
+                <span class="month"></span>
+                <span class="year"></span>
+            </div>
+        </div>
+        <div class="header-card card-user">
+            <span class="user-name">User Name</span>
+            <div class="user-avatar">
+                <span class="avatar"></span>
+            </div>
+        </div>
+    `;
+
+    // Initialize calendar immediately if date-update.js is already loaded
+    if (typeof initHeaderCalendar === 'function') {
+        initHeaderCalendar();
+    }
+}
 
 function updateUserProfile() {
     // Get user from localStorage (cached session)

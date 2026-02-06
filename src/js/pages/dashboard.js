@@ -4,7 +4,6 @@
  */
 
 // ---------- CONFIG & STATE ----------
-// ---------- CONFIG & STATE ----------
 const API_BASE = window.API_BASE_URL || "http://localhost:5000/api";
 const CATEGORY_COLORS = {
     'Food & Dining': '#3b82f6',     // Blue
@@ -39,11 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check user session
     const userStr = localStorage.getItem('user');
     if (userStr) {
-        currentUser = JSON.parse(userStr);
+        const currentUser = JSON.parse(userStr);
         console.log("Dashboard initialized for user:", currentUser.email);
     } else {
-        // Redirect to login if needed, or handle as guest
-        // window.location.href = '/pages/auth/login.html';
         console.warn("No logged in user found.");
     }
 
@@ -79,22 +76,41 @@ async function initDashboard() {
 async function loadData() {
     try {
         const headers = getAuthHeaders();
-        const [txRes, catRes, itemRes] = await Promise.all([
+        const [txRes, catRes] = await Promise.all([
             fetch(`${API_BASE}/transactions`, { headers }),
-            fetch(`${API_BASE}/categories`, { headers }),
-            fetch(`${API_BASE}/items`, { headers })
+            fetch(`${API_BASE}/categories`, { headers })
         ]);
 
-        if (!txRes.ok || !catRes.ok || !itemRes.ok) throw new Error("Failed to fetch data");
+        if (!txRes.ok || !catRes.ok) throw new Error("Failed to fetch data");
 
         const txData = await txRes.json();
-        allTransactions = txData.data || []; // Handle API response structure { data: [...] }
+        allTransactions = txData.data || [];
 
         const catData = await catRes.json();
-        categories = catData.data || [];
+        const rawCategories = catData.data || [];
 
-        const itemData = await itemRes.json();
-        items = itemData.data || [];
+        // Transform API data to match Transactions page format (extract items from subcategories)
+        categories = [];
+        items = [];
+        rawCategories.forEach(cat => {
+            categories.push({
+                id: cat.id,
+                name: cat.name,
+                type: cat.type,
+                icon: cat.icon,
+                color: cat.color
+            });
+
+            if (cat.subcategories && cat.subcategories.length > 0) {
+                cat.subcategories.forEach(sub => {
+                    items.push({
+                        id: sub.id,
+                        name: sub.name,
+                        categoryId: cat.id
+                    });
+                });
+            }
+        });
 
         processDashboardData();
     } catch (error) {
@@ -106,12 +122,6 @@ function processDashboardData() {
     const selectedMonth = dashboardData.selectedDate.getMonth();
     const selectedYear = dashboardData.selectedDate.getFullYear();
 
-    // Map for quick lookup
-    const catMap = {};
-    categories.forEach(c => catMap[c.id] = { name: c.name, icon: c.icon });
-    const itemMap = {};
-    items.forEach(i => itemMap[i.id] = i.name);
-
     // Filter transactions for the selected month and year
     const monthlyTransactions = allTransactions.filter(tx => {
         const txDate = new Date(tx.date);
@@ -122,31 +132,46 @@ function processDashboardData() {
     dashboardData.summary = { income: 0, expense: 0, investment: 0, balance: 0 };
     dashboardData.categoryExpenses = {};
 
-    monthlyTransactions.forEach(tx => {
+    // Process all transactions for the month with robust lookups
+    const processedTransactions = monthlyTransactions.map(tx => {
         const amount = Number(tx.amount);
-        const catData = catMap[tx.category_id] || { name: tx.category || 'Others', icon: '📦' };
-        const itemName = itemMap[tx.item_id] || tx.item || '—';
 
-        // Attach names for easier rendering later
-        tx.categoryName = catData.name;
-        tx.categoryIcon = catData.icon;
-        tx.itemName = itemName;
+        // Find category info (loose equality as in transactions.js)
+        const catId = tx.category_id || tx.categoryId;
+        const cat = categories.find(c => c.id == catId);
+        const categoryName = cat ? cat.name : (tx.category || 'Others');
+        const categoryIcon = cat ? cat.icon : '📦';
 
-        if (tx.type === 'income') {
+        // Find item info (loose equality as in transactions.js)
+        const itemId = tx.item_id || tx.itemId;
+        const itemObj = items.find(i => i.id == itemId);
+        const itemName = itemObj ? itemObj.name : (tx.item || '—');
+
+        // Update summary totals
+        const type = (tx.type || '').toLowerCase();
+        if (type === 'income') {
             dashboardData.summary.income += amount;
-        } else if (tx.type === 'expense') {
+        } else if (type === 'expense') {
             dashboardData.summary.expense += amount;
-            // Group by category for donut
-            dashboardData.categoryExpenses[tx.categoryName] = (dashboardData.categoryExpenses[tx.categoryName] || 0) + amount;
-        } else if (tx.type === 'investment') {
+            dashboardData.categoryExpenses[categoryName] = (dashboardData.categoryExpenses[categoryName] || 0) + amount;
+        } else if (type === 'investment') {
             dashboardData.summary.investment += amount;
         }
+
+        return {
+            ...tx,
+            categoryName,
+            categoryIcon,
+            itemName,
+            amount,
+            type
+        };
     });
 
     dashboardData.summary.balance = dashboardData.summary.income - dashboardData.summary.expense - dashboardData.summary.investment;
 
-    // Get recent 5 transactions for this month (newest first)
-    dashboardData.recentTransactions = [...monthlyTransactions]
+    // Latest 5 transactions for the month (sorted by date desc)
+    dashboardData.recentTransactions = [...processedTransactions]
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 5);
 
@@ -156,7 +181,7 @@ function processDashboardData() {
 // ---------- UI UPDATES ----------
 function updateUI() {
     updateSummaryCards();
-    // updateDonutChart(); // Disabled
+    updateDonutChart();
     renderRecentTransactions();
 }
 
@@ -174,7 +199,7 @@ function updateDonutChart() {
     if (!canvas || !chartContent || !breakdownCard) return;
 
     const ctx = canvas.getContext('2d');
-    const categories = Object.keys(dashboardData.categoryExpenses);
+    const categoryLabels = Object.keys(dashboardData.categoryExpenses);
     const amounts = Object.values(dashboardData.categoryExpenses);
     const totalExpense = dashboardData.summary.expense;
 
@@ -182,7 +207,7 @@ function updateDonutChart() {
     const existingEmpty = breakdownCard.querySelector('.chart-empty-state');
     if (existingEmpty) existingEmpty.remove();
 
-    if (totalExpense === 0 || categories.length === 0) {
+    if (totalExpense === 0 || categoryLabels.length === 0) {
         chartContent.style.display = 'none';
         const emptyState = document.createElement('div');
         emptyState.className = 'chart-empty-state';
@@ -195,10 +220,12 @@ function updateDonutChart() {
     }
 
     chartContent.style.display = 'flex';
-    // Center text update
     document.querySelector('.total-spent-amount').textContent = formatCurrency(totalExpense);
 
-    const chartColors = categories.map(cat => CATEGORY_COLORS[cat] || CATEGORY_COLORS['Others']);
+    const chartColors = categoryLabels.map(catLabel => {
+        const cat = categories.find(c => c.name === catLabel);
+        return cat?.color || CATEGORY_COLORS[catLabel] || CATEGORY_COLORS['Others'];
+    });
 
     if (expenseDonutChart) {
         expenseDonutChart.destroy();
@@ -207,7 +234,7 @@ function updateDonutChart() {
     expenseDonutChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: categories,
+            labels: categoryLabels,
             datasets: [{
                 data: amounts,
                 backgroundColor: chartColors,
@@ -216,7 +243,7 @@ function updateDonutChart() {
             }]
         },
         options: {
-            cutout: '70%', // Increased width of the donut
+            cutout: '70%',
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -231,17 +258,13 @@ function updateDonutChart() {
                     boxWidth: 10,
                     boxHeight: 10,
                     boxBorderWidth: 0,
-                    usePointStyle: false,
                     backgroundColor: 'rgba(0, 0, 0, 1)',
                     titleColor: '#ffffff',
                     bodyColor: '#ffffff',
-                    bodyFont: {
-                        size: 14,
-                        weight: '600'
-                    },
+                    bodyFont: { size: 14, weight: '600' },
                     padding: 12,
                     cornerRadius: 8,
-                    caretPadding: 0, // Positioner handles spacing
+                    caretPadding: 0,
                     caretSize: 6,
                     callbacks: {
                         title: () => '',
@@ -264,12 +287,14 @@ function updateDonutChart() {
         }
     });
 
-    // Render custom legend
-    const legendData = categories.map((cat) => ({
-        name: cat,
-        percent: ((dashboardData.categoryExpenses[cat] / totalExpense) * 100).toFixed(1),
-        color: CATEGORY_COLORS[cat] || CATEGORY_COLORS['Others']
-    })).sort((a, b) => b.percent - a.percent);
+    const legendData = categoryLabels.map((catLabel) => {
+        const cat = categories.find(c => c.name === catLabel);
+        return {
+            name: catLabel,
+            percent: ((dashboardData.categoryExpenses[catLabel] / totalExpense) * 100).toFixed(1),
+            color: cat?.color || CATEGORY_COLORS[catLabel] || CATEGORY_COLORS['Others']
+        };
+    }).sort((a, b) => b.percent - a.percent);
 
     renderLegend(legendData);
 }
@@ -299,10 +324,11 @@ function renderRecentTransactions() {
     if (!listContainer) return;
 
     if (dashboardData.recentTransactions.length === 0) {
-        listContainer.innerHTML = `<div class="chart-empty-state">
-            <span class="empty-icon-large">📭</span>
-            <span class="empty-text-desc" style="color: #64748b; font-weight: 700;">No transactions for this month</span>
-        </div>`;
+        listContainer.innerHTML = `
+            <div class="chart-empty-state">
+                <span class="empty-icon-large">📭</span>
+                <span class="empty-text-desc" style="color: #94a3b8; font-weight: 700;">No transactions for this month</span>
+            </div>`;
         return;
     }
 
@@ -330,16 +356,14 @@ function setupMonthSelector() {
     const nextYearBtn = document.getElementById('picker-next-year');
     const monthsGrid = document.getElementById('months-grid');
 
+    const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     let pickerYear = dashboardData.selectedDate.getFullYear();
     let isYearView = false;
-
-    const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     const updateDisplay = () => {
         const options = { month: 'long', year: 'numeric' };
         monthText.textContent = dashboardData.selectedDate.toLocaleDateString('en-US', options);
 
-        // Save to localStorage
         localStorage.setItem('dashboardYear', dashboardData.selectedDate.getFullYear());
         localStorage.setItem('dashboardMonth', dashboardData.selectedDate.getMonth());
 
@@ -350,7 +374,6 @@ function setupMonthSelector() {
         yearDisplay.textContent = pickerYear;
 
         if (isYearView) {
-            // Render 12 years around the current pickerYear
             const startYear = pickerYear - 5;
             let yearsHtml = '';
             for (let i = 0; i < 12; i++) {
@@ -360,7 +383,7 @@ function setupMonthSelector() {
             }
             monthsGrid.className = 'years-grid';
             monthsGrid.innerHTML = yearsHtml;
-            prevYearBtn.textContent = '«'; // Double arrow for faster nav in year view
+            prevYearBtn.textContent = '«';
             nextYearBtn.textContent = '»';
         } else {
             monthsGrid.className = 'months-grid';
@@ -373,7 +396,6 @@ function setupMonthSelector() {
         }
     };
 
-    // Toggle Modal
     if (trigger) {
         trigger.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -384,14 +406,9 @@ function setupMonthSelector() {
                 renderPicker();
             }
         });
-
-        // Prevent closing when clicking inside the modal
-        modal.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
+        modal.addEventListener('click', (e) => e.stopPropagation());
     }
 
-    // Switch between Month and Year view
     if (yearDisplay) {
         yearDisplay.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -400,22 +417,16 @@ function setupMonthSelector() {
         });
     }
 
-    // Close Modal on click outside
     document.addEventListener('click', (e) => {
         if (modal && !modal.contains(e.target) && !trigger.contains(e.target)) {
             modal.classList.remove('active');
         }
     });
 
-    // Year Navigation
     if (prevYearBtn) {
         prevYearBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (isYearView) {
-                pickerYear -= 12; // Jump 12 years
-            } else {
-                pickerYear--;
-            }
+            if (isYearView) pickerYear -= 12; else pickerYear--;
             renderPicker();
         });
     }
@@ -423,16 +434,11 @@ function setupMonthSelector() {
     if (nextYearBtn) {
         nextYearBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (isYearView) {
-                pickerYear += 12;
-            } else {
-                pickerYear++;
-            }
+            if (isYearView) pickerYear += 12; else pickerYear++;
             renderPicker();
         });
     }
 
-    // Selection Handling
     if (monthsGrid) {
         monthsGrid.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -444,13 +450,12 @@ function setupMonthSelector() {
                 modal.classList.remove('active');
             } else if (e.target.classList.contains('year-btn')) {
                 pickerYear = parseInt(e.target.dataset.year);
-                isYearView = false; // Switch back to month view
+                isYearView = false;
                 renderPicker();
             }
         });
     }
 
-    // Main navigation buttons (‹ ›)
     if (prevBtn) {
         prevBtn.addEventListener('click', () => {
             dashboardData.selectedDate.setMonth(dashboardData.selectedDate.getMonth() - 1);
@@ -465,7 +470,6 @@ function setupMonthSelector() {
         });
     }
 
-    // Initial display
     updateDisplay();
 }
 
@@ -502,7 +506,6 @@ window.navigateToTransactions = function (type) {
     const year = dashboardData.selectedDate.getFullYear();
     const formattedMonth = `${year}-${String(month).padStart(2, '0')}`;
 
-    // Pass filters via URL parameters
     const params = new URLSearchParams();
     if (type !== 'all') params.append('type', type);
     params.append('month', formattedMonth);
