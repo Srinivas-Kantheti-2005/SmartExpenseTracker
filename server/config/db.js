@@ -57,24 +57,39 @@ function closeDatabase() {
  * Run a query and return all results
  */
 function query(sql, params = []) {
-    const stmt = getDatabase().prepare(sql);
-    return stmt.all(...params);
+    try {
+        const stmt = getDatabase().prepare(sql);
+        return stmt.all(...params);
+    } catch (e) {
+        console.error('❌ SQL Prepare Failed:', sql);
+        throw e;
+    }
 }
 
 /**
  * Run a query and return first result
  */
 function queryOne(sql, params = []) {
-    const stmt = getDatabase().prepare(sql);
-    return stmt.get(...params);
+    try {
+        const stmt = getDatabase().prepare(sql);
+        return stmt.get(...params);
+    } catch (e) {
+        console.error('❌ SQL Prepare Failed:', sql);
+        throw e;
+    }
 }
 
 /**
  * Execute a statement (INSERT, UPDATE, DELETE)
  */
 function execute(sql, params = []) {
-    const stmt = getDatabase().prepare(sql);
-    return stmt.run(...params);
+    try {
+        const stmt = getDatabase().prepare(sql);
+        return stmt.run(...params);
+    } catch (e) {
+        console.error('❌ SQL Prepare Failed:', sql);
+        throw e;
+    }
 }
 
 /**

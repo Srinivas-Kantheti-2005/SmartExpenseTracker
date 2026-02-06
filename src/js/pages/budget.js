@@ -5,7 +5,7 @@ console.log('Budget.js loaded');
 
 (function () { // Start IIFE
 
-    const BUDGET_API_BASE = window.API_BASE_URL || 'http://localhost:5000/api';
+    const BUDGET_API_BASE = window.API_BASE_URL || 'http://localhost:5001/api';
 
     // State
     const navEntry = performance.getEntriesByType("navigation")[0];
@@ -145,14 +145,14 @@ console.log('Budget.js loaded');
                         new monthSelectPlugin({
                             shorthand: true, // Short Month Names (Jan, Feb) in picker
                             dateFormat: "Y-m-d",
-                            altFormat: "m-Y", // 01-2026
+                            altFormat: "M-Y", // Jan-2026
                             theme: "material_blue"
                         })
                     ],
                     disableMobile: "true",
                     allowInput: true,
                     altInput: true,
-                    altFormat: "m-Y", // Display numeric month and year
+                    altFormat: "M-Y", // Display shorthand month and year
                     dateFormat: "Y-m-d",
                     defaultDate: `${currentYear}-${currentMonth}-01`,
                 });
@@ -211,44 +211,52 @@ console.log('Budget.js loaded');
             // Fallback
             const formDisplay = document.getElementById('budget-month-display');
             if (formDisplay) {
-                const monthNum = String(currentMonth).padStart(2, '0');
-                formDisplay.value = `${monthNum}-${currentYear}`;
+                const shortMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                formDisplay.value = `${shortMonthNames[currentMonth - 1]}-${currentYear}`;
             }
         }
     }
 
     async function fetchCategories() {
         try {
-            // 1. Fetch Types to find "Expense" ID
-            const typesRes = await fetch(`${BUDGET_API_BASE}/types`, { headers: getAuthHeaders() });
-            const types = await typesRes.json();
-            const expenseType = Array.isArray(types) ? types.find(t => t.name.toLowerCase() === 'expense') : null;
-            const expenseTypeId = expenseType ? expenseType.id : 'type-2'; // Default fallback
+            // Fetch categories from new API (includes subcategories nested)
+            const catRes = await fetch(`${BUDGET_API_BASE}/categories`, { headers: getAuthHeaders() });
+            const catData = await catRes.json();
 
-            // 2. Fetch All Categories
-            const res = await fetch(`${BUDGET_API_BASE}/categories?email=${currentUser.email}`, {
-                headers: getAuthHeaders()
+            if (!catData.success || !catData.data) {
+                throw new Error(catData.error?.message || 'Failed to load categories');
+            }
+
+            // Transform API data to match expected format - filter only expense
+            allCategories = [];
+            allItems = [];
+
+            catData.data.forEach(cat => {
+                // Only expense categories (budgets are for expenses)
+                if (cat.type === 'expense') {
+                    allCategories.push({
+                        id: cat.id,
+                        name: cat.name,
+                        type: cat.type,
+                        icon: cat.icon,
+                        color: cat.color
+                    });
+
+                    // Subcategories (items)
+                    if (cat.subcategories && cat.subcategories.length > 0) {
+                        cat.subcategories.forEach(sub => {
+                            allItems.push({
+                                id: sub.id,
+                                name: sub.name,
+                                categoryId: cat.id
+                            });
+                        });
+                    }
+                }
             });
-            const data = await res.json();
 
-            // 3. Filter for Expense Categories
-            if (Array.isArray(data)) {
-                allCategories = data.filter(cat => cat.typeId === expenseTypeId);
-                console.log('Fetched Expense categories:', allCategories);
-            } else {
-                console.error('Failed to fetch categories: Invalid format', data);
-                allCategories = [];
-            }
-
-            // 4. Fetch All Items
-            const itemsRes = await fetch(`${BUDGET_API_BASE}/items?email=${currentUser.email}`, { headers: getAuthHeaders() });
-            const itemsData = await itemsRes.json();
-            if (Array.isArray(itemsData)) {
-                allItems = itemsData;
-            } else {
-                allItems = [];
-            }
-
+            console.log(`Loaded: ${allCategories.length} expense categories, ${allItems.length} items`);
         } catch (error) {
             console.error('Error fetching categories/items:', error);
             allCategories = [];
@@ -448,7 +456,7 @@ console.log('Budget.js loaded');
                         new monthSelectPlugin({
                             shorthand: true,
                             dateFormat: "Y-m-d",
-                            altFormat: "m-Y",
+                            altFormat: "M-Y",
                             theme: "material_blue"
                         })
                     ],
@@ -489,7 +497,7 @@ console.log('Budget.js loaded');
                 const monthStr = bDate.toLocaleString('default', { month: 'short' });
 
                 tr.innerHTML = `
-                <td style="color: #64748b; font-weight: 500;">${monthStr} ${budget.year}</td>
+                <td style="color: #64748b; font-weight: 500;">${monthStr}-${budget.year}</td>
                 <td>
                     <div class="category-cell">
                         <span class="category-icon">${catIcon}</span>

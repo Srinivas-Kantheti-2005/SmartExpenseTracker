@@ -57,6 +57,7 @@ router.get('/:id', authenticate, (req, res) => {
 
 // POST /api/transactions
 router.post('/', authenticate, asyncHandler(async (req, res) => {
+    console.log('POST /api/transactions payload:', req.body);
     const { type, amount, category_id, date } = req.body;
 
     if (!type || !amount || !category_id || !date) {

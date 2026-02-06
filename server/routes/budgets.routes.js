@@ -10,7 +10,11 @@ const { asyncHandler, AppError } = require('../middleware/error.middleware');
 
 // GET /api/budgets
 router.get('/', authenticate, (req, res) => {
-    const budgets = BudgetModel.findAll(req.user.id);
+    const { month, year } = req.query;
+    const budgets = BudgetModel.findAll(req.user.id, {
+        month: month ? parseInt(month) : null,
+        year: year ? parseInt(year) : null
+    });
 
     res.json({
         success: true,
@@ -20,13 +24,22 @@ router.get('/', authenticate, (req, res) => {
 
 // POST /api/budgets
 router.post('/', authenticate, asyncHandler(async (req, res) => {
-    const { category_id, amount, start_date, end_date } = req.body;
+    const { category_id, amount, month, year } = req.body;
 
-    if (!category_id || !amount || !start_date || !end_date) {
-        throw new AppError('Category, amount, start date and end date are required', 400, 'VALIDATION_ERROR');
+    if (!category_id || !amount || !month || !year) {
+        throw new AppError('Category, amount, month and year are required', 400, 'VALIDATION_ERROR');
     }
 
-    const budget = BudgetModel.create(req.user.id, req.body);
+    // Calculate start/end dates for DB consistency
+    const start_date = `${year}-${String(month).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const end_date = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+
+    const budget = BudgetModel.create(req.user.id, {
+        ...req.body,
+        start_date,
+        end_date
+    });
 
     res.status(201).json({
         success: true,
@@ -36,7 +49,18 @@ router.post('/', authenticate, asyncHandler(async (req, res) => {
 
 // PUT /api/budgets/:id
 router.put('/:id', authenticate, (req, res) => {
-    const budget = BudgetModel.update(req.params.id, req.user.id, req.body);
+    const { month, year } = req.body;
+    let updates = { ...req.body };
+
+    if (month && year) {
+        const start_date = `${year}-${String(month).padStart(2, '0')}-01`;
+        const lastDay = new Date(year, month, 0).getDate();
+        const end_date = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+        updates.start_date = start_date;
+        updates.end_date = end_date;
+    }
+
+    const budget = BudgetModel.update(req.params.id, req.user.id, updates);
 
     if (!budget) {
         throw new AppError('Budget not found', 404, 'NOT_FOUND');

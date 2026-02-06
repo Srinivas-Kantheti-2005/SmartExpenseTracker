@@ -7,7 +7,7 @@ const { generateUUID } = require('../utils/helpers');
 
 const TransactionModel = {
     /**
-     * Find all transactions with filters
+     * Find all transactions with filters (Isolated to User)
      */
     findAll(userId, filters = {}) {
         let sql = 'SELECT * FROM transactions WHERE user_id = ?';
@@ -23,6 +23,11 @@ const TransactionModel = {
             params.push(filters.category_id);
         }
 
+        if (filters.item_id) {
+            sql += ' AND item_id = ?';
+            params.push(filters.item_id);
+        }
+
         if (filters.startDate) {
             sql += ' AND date >= ?';
             params.push(filters.startDate);
@@ -33,7 +38,7 @@ const TransactionModel = {
             params.push(filters.endDate);
         }
 
-        sql += ' ORDER BY date DESC';
+        sql += ' ORDER BY date DESC, created_at DESC';
 
         if (filters.limit) {
             sql += ' LIMIT ?';
@@ -49,7 +54,7 @@ const TransactionModel = {
     },
 
     /**
-     * Count transactions with filters
+     * Count transactions with filters (Isolated to User)
      */
     count(userId, filters = {}) {
         let sql = 'SELECT COUNT(*) as count FROM transactions WHERE user_id = ?';
@@ -65,6 +70,11 @@ const TransactionModel = {
             params.push(filters.category_id);
         }
 
+        if (filters.item_id) {
+            sql += ' AND item_id = ?';
+            params.push(filters.item_id);
+        }
+
         if (filters.startDate) {
             sql += ' AND date >= ?';
             params.push(filters.startDate);
@@ -76,11 +86,11 @@ const TransactionModel = {
         }
 
         const result = queryOne(sql, params);
-        return result.count;
+        return result?.count || 0;
     },
 
     /**
-     * Find transaction by ID
+     * Find transaction by ID (Isolated to User)
      */
     findById(id, userId) {
         return queryOne('SELECT * FROM transactions WHERE id = ? AND user_id = ?', [id, userId]);
@@ -101,14 +111,14 @@ const TransactionModel = {
     },
 
     /**
-     * Update transaction
+     * Update transaction (Isolated to User)
      */
     update(id, userId, updates) {
         const allowedFields = ['type', 'amount', 'category_id', 'item_id', 'date', 'description'];
         const fields = [];
         const values = [];
 
-        for (const [key, value] of Object.entries(updates)) {
+        for (let [key, value] of Object.entries(updates)) {
             if (allowedFields.includes(key)) {
                 fields.push(`${key} = ?`);
                 values.push(value);
@@ -118,12 +128,12 @@ const TransactionModel = {
         if (fields.length === 0) return null;
 
         values.push(id, userId);
-        execute(`UPDATE transactions SET ${fields.join(', ')} WHERE id = ? AND user_id = ?`, values);
+        execute(`UPDATE transactions SET ${fields.join(', ')}, updated_at = datetime('now') WHERE id = ? AND user_id = ?`, values);
         return this.findById(id, userId);
     },
 
     /**
-     * Delete transaction
+     * Delete transaction (Isolated to User)
      */
     delete(id, userId) {
         const result = execute('DELETE FROM transactions WHERE id = ? AND user_id = ?', [id, userId]);

@@ -2,6 +2,16 @@
    Transactions Page Styles
    ======================================== */
 
+html,
+body {
+    height: 100%;
+}
+
+body {
+    min-height: 100vh;
+}
+
+
 .page-container {
     display: flex;
     flex-direction: column;
@@ -147,9 +157,8 @@
 }
 
 .filter-card select:disabled {
-    opacity: 0.6;
     cursor: not-allowed;
-    background-color: #f1f5f9;
+    opacity: 1 !important;
 }
 
 /* Clear Filters Button */
@@ -239,12 +248,23 @@
     font-family: 'Inter', sans-serif;
 }
 
+/* Focus States */
 .form-group select:focus,
 .form-group input:focus,
 .single-line-input:focus {
     border-color: #6366f1;
     background: white;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Disabled States - Match other pages */
+.form-group input:disabled,
+.form-group select:disabled,
+.form-group .select-wrapper:has(select:disabled),
+.form-group .flatpickr-input[disabled] {
+    cursor: not-allowed;
+    opacity: 1 !important;
+    /* Keep full opacity as requested */
 }
 
 /* Specific fix for textarea behaving as single line input */
@@ -553,13 +573,16 @@ textarea.single-line-input {
     margin-bottom: 8px;
     font-weight: 700;
     /* Bold */
+    opacity: 0.5;
+    /* Muted */
 }
 
 .sub-text {
     font-size: 14px !important;
-    opacity: 0.8;
     font-weight: 700;
     /* Bold */
+    opacity: 0.4;
+    /* More muted */
 }
 
 .btn-text {

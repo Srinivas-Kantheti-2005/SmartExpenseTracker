@@ -4,6 +4,15 @@ let allTypes = [];
 let allCategories = [];
 let allItems = [];
 const currentUser = JSON.parse(localStorage.getItem('user'));
+const token = localStorage.getItem('token');
+
+// Helper function to get auth headers
+function getAuthHeaders() {
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
     if (!currentUser) {
@@ -20,7 +29,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function fetchData() {
     try {
         // Fetch categories from new API (includes subcategories)
-        const categoriesResponse = await fetch(`${API_URL}/categories`);
+        const categoriesResponse = await fetch(`${API_URL}/categories`, {
+            headers: getAuthHeaders()
+        });
         if (!categoriesResponse.ok) throw new Error('Failed to fetch categories');
         const categoriesData = await categoriesResponse.json();
 
@@ -61,10 +72,28 @@ async function fetchData() {
             { id: 'investment', name: 'Investment', icon: '📈' }
         ];
 
-        // Default to first type
-        if (!currentType && allTypes.length > 0) {
-            currentType = allTypes[0];
+        // Persistence Logic: URL Params > LocalStorage > Default
+        const params = new URLSearchParams(window.location.search);
+        const typeParam = params.get('type');
+        const savedType = localStorage.getItem('selectedCategoryType');
+
+        let targetType = null;
+        if (typeParam) {
+            targetType = allTypes.find(t => t.id === typeParam.toLowerCase());
         }
+        if (!targetType && savedType) {
+            targetType = allTypes.find(t => t.id === savedType);
+        }
+
+        currentType = targetType || allTypes[0];
+
+        // Sync URL if needed
+        if (currentType && typeParam !== currentType.id) {
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('type', currentType.id);
+            window.history.replaceState({}, '', newUrl);
+        }
+
     } catch (error) {
         console.error('Error fetching data:', error);
         alert('Failed to load categories. Please refresh the page.');
@@ -112,6 +141,13 @@ function getTypeIcon(name) {
 
 function switchType(type) {
     currentType = type;
+    localStorage.setItem('selectedCategoryType', type.id);
+
+    // Update URL without reload
+    const newUrl = new URL(window.location);
+    newUrl.searchParams.set('type', type.id);
+    window.history.pushState({}, '', newUrl);
+
     initializeTabs();
     renderContent();
 }
@@ -405,14 +441,14 @@ form.onsubmit = async (e) => {
             if (editingItem.isNew) {
                 await fetch(`${API_URL}/categories`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...payload, id: crypto.randomUUID() })
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ name, icon, color, type: currentType.id })
                 });
             } else {
                 await fetch(`${API_URL}/categories/${editingItem.id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    method: 'PUT',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ name, icon, color })
                 });
             }
 

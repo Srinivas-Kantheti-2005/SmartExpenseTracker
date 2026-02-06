@@ -2,6 +2,16 @@
    Settings Page Styles
    ======================================== */
 
+html,
+body {
+    height: 100%;
+}
+
+body {
+    min-height: 100vh;
+}
+
+
 .settings-page {
     padding: var(--spacing-lg);
     max-width: 800px;

@@ -5,7 +5,7 @@ console.log('Income.js loaded');
 
 (function () { // Start IIFE
 
-    const API_BASE = window.API_BASE_URL || 'http://localhost:5000/api';
+    const API_BASE = window.API_BASE_URL || 'http://localhost:5001/api';
 
     // State
     // State
@@ -83,6 +83,13 @@ console.log('Income.js loaded');
                 altFormat: "d/m/Y", // e.g., 01/02/2026
                 theme: "material_blue"
             });
+            // Initially disable the date field until category is selected
+            if (dateInput._flatpickr) {
+                dateInput._flatpickr.input.disabled = true;
+                if (dateInput._flatpickr.altInput) dateInput._flatpickr.altInput.disabled = true;
+            } else {
+                dateInput.disabled = true;
+            }
         }
 
         // 4. Load Data
@@ -188,49 +195,43 @@ console.log('Income.js loaded');
 
     async function fetchCategories() {
         try {
-            // Helper to try paths
-            const fetchWithFallback = async (endpoint) => {
-                // Try /api/endpoint first
-                let url = `${API_BASE}/${endpoint}`;
-                let res = await fetch(url, { headers: getAuthHeaders() });
+            // Fetch categories from new API (includes subcategories nested)
+            const catRes = await fetch(`${API_BASE}/categories`, { headers: getAuthHeaders() });
+            const catData = await catRes.json();
 
-                // If 404, try root path (fallback for json-server default)
-                if (res.status === 404) {
-                    console.warn(`404 at ${url}, trying fallback to root...`);
-                    const fallbackUrl = url.replace('/api', '');
-                    res = await fetch(fallbackUrl, { headers: getAuthHeaders() });
+            if (!catData.success || !catData.data) {
+                throw new Error(catData.error?.message || 'Failed to load categories');
+            }
+
+            // Transform API data to match expected format - filter only income
+            allCategories = [];
+            allItems = [];
+
+            catData.data.forEach(cat => {
+                // Only income categories
+                if (cat.type === 'income') {
+                    allCategories.push({
+                        id: cat.id,
+                        name: cat.name,
+                        type: cat.type,
+                        icon: cat.icon,
+                        color: cat.color
+                    });
+
+                    // Subcategories (items)
+                    if (cat.subcategories && cat.subcategories.length > 0) {
+                        cat.subcategories.forEach(sub => {
+                            allItems.push({
+                                id: sub.id,
+                                name: sub.name,
+                                categoryId: cat.id
+                            });
+                        });
+                    }
                 }
-
-                if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-                return res.json();
-            };
-
-            // 1. Fetch Types
-            const typesData = await fetchWithFallback('types');
-            const types = Array.isArray(typesData) ? typesData : (typesData.data || []);
-
-            // Find "Income" type ID
-            const incomeType = types.find(t => t.name.toLowerCase() === 'income');
-            const incomeTypeId = incomeType ? incomeType.id : 'type-1';
-
-            // 2. Fetch All Categories
-            const catData = await fetchWithFallback(`categories?email=${currentUser.email}`);
-            const categories = Array.isArray(catData) ? catData : (catData.data || []);
-
-            // 3. Filter for Income Categories
-            allCategories = categories.filter(cat => {
-                const tId = cat.typeId || cat.type_id;
-                return tId == incomeTypeId;
             });
 
-            // 4. Fetch All Items
-            const itemsDataRaw = await fetchWithFallback(`items?email=${currentUser.email}`);
-            const itemsList = Array.isArray(itemsDataRaw) ? itemsDataRaw : (itemsDataRaw.data || []);
-
-            allItems = itemsList;
-
-            console.log(`Loaded: ${allCategories.length} categories, ${allItems.length} items. Auth Type: ${incomeTypeId}`);
-            // Clear error if success
+            console.log(`Loaded: ${allCategories.length} income categories, ${allItems.length} items`);
             window.catFetchError = null;
 
         } catch (error) {
@@ -284,13 +285,33 @@ console.log('Income.js loaded');
 
     function populateItemSelect(categoryId) {
         const itemSelect = document.getElementById('item-select');
+        const dateInput = document.getElementById('income-date');
         if (!itemSelect) return;
 
         itemSelect.innerHTML = '<option value="" disabled selected>Select Item</option>';
 
         if (!categoryId) {
             itemSelect.disabled = true;
+            if (dateInput) {
+                if (dateInput._flatpickr) {
+                    dateInput._flatpickr.input.disabled = true;
+                    if (dateInput._flatpickr.altInput) dateInput._flatpickr.altInput.disabled = true;
+                } else {
+                    dateInput.disabled = true;
+                }
+            }
             return;
+        }
+
+        // Enable fields when category is selected
+        itemSelect.disabled = false;
+        if (dateInput) {
+            if (dateInput._flatpickr) {
+                dateInput._flatpickr.input.disabled = false;
+                if (dateInput._flatpickr.altInput) dateInput._flatpickr.altInput.disabled = false;
+            } else {
+                dateInput.disabled = false;
+            }
         }
 
         // Filter items for this category
@@ -301,7 +322,6 @@ console.log('Income.js loaded');
         });
 
         if (items.length === 0) {
-            itemSelect.disabled = true;
             const option = document.createElement('option');
             option.text = "No items found";
             itemSelect.add(option);
@@ -361,194 +381,6 @@ console.log('Income.js loaded');
         }
     }
 
-    function changeMonth(delta) {
-        currentMonth += delta;
-        if (currentMonth > 12) {
-            currentMonth = 1;
-            currentYear++;
-        } else if (currentMonth < 1) {
-            currentMonth = 12;
-            currentYear--;
-        }
-        // Save to localStorage
-        localStorage.setItem('selectedIncomeYear', currentYear);
-        localStorage.setItem('selectedIncomeMonth', currentMonth);
-
-        updateMonthDisplay();
-        loadIncomes();
-    }
-
-    function updateMonthDisplay() {
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'];
-        const displayEl = document.getElementById('current-month');
-        if (displayEl) {
-            displayEl.textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
-        }
-        if (window.updateFlatpickrDate) {
-            window.updateFlatpickrDate(currentYear, currentMonth);
-        }
-
-        // Sync "Add Income" Form Date
-        const incomeDateInput = document.getElementById('income-date');
-        if (incomeDateInput && incomeDateInput._flatpickr) {
-            // Use today's day number, projected into the selected month
-            // Handle edge cases where selected month has fewer days than today's day (e.g. 31st -> 28th Feb)
-            const today = new Date();
-            const worldDay = today.getDate();
-            const daysInTargetMonth = new Date(currentYear, currentMonth, 0).getDate();
-            const targetDay = Math.min(worldDay, daysInTargetMonth);
-
-            const newDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`;
-            incomeDateInput._flatpickr.setDate(newDate);
-        }
-    }
-
-    /* --- Data Fetching --- */
-
-    function getAuthHeaders() {
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-        const token = localStorage.getItem('token');
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-        return headers;
-    }
-
-    async function fetchCategories() {
-        try {
-            // Helper to try paths
-            const fetchWithFallback = async (endpoint) => {
-                // Try /api/endpoint first
-                let url = `${API_BASE}/${endpoint}`;
-                let res = await fetch(url, { headers: getAuthHeaders() });
-
-                // If 404, try root path (fallback for json-server default)
-                if (res.status === 404) {
-                    console.warn(`404 at ${url}, trying fallback to root...`);
-                    const fallbackUrl = url.replace('/api', '');
-                    res = await fetch(fallbackUrl, { headers: getAuthHeaders() });
-                }
-
-                if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-                return res.json();
-            };
-
-            // 1. Fetch Types
-            const typesData = await fetchWithFallback('types');
-            const types = Array.isArray(typesData) ? typesData : (typesData.data || []);
-
-            // Find "Income" type ID
-            const incomeType = types.find(t => t.name.toLowerCase() === 'income');
-            const incomeTypeId = incomeType ? incomeType.id : 'type-1';
-
-            // 2. Fetch All Categories
-            const catData = await fetchWithFallback('categories');
-            const categories = Array.isArray(catData) ? catData : (catData.data || []);
-
-            // 3. Filter for Income Categories
-            allCategories = categories.filter(cat => {
-                const tId = cat.typeId || cat.type_id;
-                return tId == incomeTypeId;
-            });
-
-            // 4. Fetch All Items
-            const itemsDataRaw = await fetchWithFallback('items');
-            const itemsList = Array.isArray(itemsDataRaw) ? itemsDataRaw : (itemsDataRaw.data || []);
-
-            allItems = itemsList;
-
-            console.log(`Loaded: ${allCategories.length} categories, ${allItems.length} items. Auth Type: ${incomeTypeId}`);
-            // Clear error if success
-            window.catFetchError = null;
-
-        } catch (error) {
-            console.error('Error fetching categories/items:', error);
-            window.catFetchError = error.message;
-            allCategories = [];
-            allItems = [];
-        }
-    }
-
-    function setupDependentDropdown() {
-        const catSelect = document.getElementById('category-select');
-        const itemSelect = document.getElementById('item-select');
-
-        if (catSelect && itemSelect) {
-            catSelect.addEventListener('change', () => {
-                const categoryId = catSelect.value;
-                populateItemSelect(categoryId);
-            });
-        }
-    }
-
-    function populateCategorySelect() {
-        const select = document.getElementById('category-select');
-        if (!select) return;
-
-        // Default option
-        select.innerHTML = '<option value="" disabled selected>Select Category</option>';
-
-        if (allCategories.length === 0) {
-            const option = document.createElement('option');
-            option.disabled = true;
-            // Check if we have a global error
-            if (window.catFetchError) {
-                option.textContent = "Error: " + window.catFetchError;
-            } else {
-                option.textContent = "No income categories found";
-            }
-            select.appendChild(option);
-            return;
-        }
-
-        allCategories.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat.id;
-            // Use cat.icon directly
-            option.textContent = `${cat.icon || '💰'} ${cat.name}`;
-            select.appendChild(option);
-        });
-    }
-
-    function populateItemSelect(categoryId) {
-        const itemSelect = document.getElementById('item-select');
-        if (!itemSelect) return;
-
-        itemSelect.innerHTML = '<option value="" disabled selected>Select Item</option>';
-
-        if (!categoryId) {
-            itemSelect.disabled = true;
-            return;
-        }
-
-        // Filter items for this category
-        // Handle both camelCase and snake_case
-        const items = allItems.filter(item => {
-            const cId = item.categoryId || item.category_id;
-            return cId == categoryId;
-        });
-
-        if (items.length === 0) {
-            itemSelect.disabled = true;
-            const option = document.createElement('option');
-            option.text = "No items found";
-            itemSelect.add(option);
-            return;
-        }
-
-        itemSelect.disabled = false;
-        items.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item.id;
-            option.text = item.name;
-            itemSelect.add(option);
-        });
-    }
-
-    // (Duplicates removed)
 
     function calculateTotalIncome() {
         const total = monthIncomes.reduce((sum, inc) => sum + (parseFloat(inc.amount) || 0), 0);
@@ -850,12 +682,17 @@ console.log('Income.js loaded');
         document.getElementById('income-amount').value = "";
         document.getElementById('income-note').value = "";
 
-        // Reset date to today using Flatpickr
+        // Reset date to today using Flatpickr and disable it
         const dateInput = document.getElementById('income-date');
-        if (dateInput && dateInput._flatpickr) {
-            dateInput._flatpickr.setDate(new Date());
-        } else if (dateInput) {
-            dateInput.valueAsDate = new Date();
+        if (dateInput) {
+            if (dateInput._flatpickr) {
+                dateInput._flatpickr.setDate(new Date());
+                dateInput._flatpickr.input.disabled = true;
+                if (dateInput._flatpickr.altInput) dateInput._flatpickr.altInput.disabled = true;
+            } else {
+                dateInput.valueAsDate = new Date();
+                dateInput.disabled = true;
+            }
         }
     }
 

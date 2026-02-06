@@ -1,5 +1,11 @@
 /* Profile Page Specific Styles */
 
+html,
+body {
+    height: 100%;
+}
+
+
 :root {
     --glass-bg: rgba(255, 255, 255, 0.85);
     /* Increased opacity for cleaner look */

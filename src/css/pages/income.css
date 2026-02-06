@@ -2,6 +2,16 @@
    Income Page Styles
    ======================================== */
 
+html,
+body {
+    height: 100%;
+}
+
+body {
+    min-height: 100vh;
+}
+
+
 .income-header-card {
     background: white;
     border-radius: 16px;
@@ -268,6 +278,25 @@ textarea.single-line-input {
     border-color: #6366f1;
     background: white;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Disabled/Muted States */
+.form-group input:disabled,
+.form-group select:disabled,
+.form-group .select-wrapper:has(select:disabled),
+.form-group .flatpickr-input[disabled] {
+    cursor: not-allowed;
+    opacity: 1 !important;
+    /* Keep full opacity as requested */
+}
+
+.muted-field {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.muted-field * {
+    pointer-events: none;
 }
 
 /* Match Budget Page Button Styles */

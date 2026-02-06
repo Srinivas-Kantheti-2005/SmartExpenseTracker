@@ -2,6 +2,16 @@
    Budget Page Styles
    ======================================== */
 
+html,
+body {
+    height: 100%;
+}
+
+body {
+    min-height: 100vh;
+}
+
+
 .budget-header-card {
     background: white;
     border-radius: 16px;
@@ -78,8 +88,8 @@
 /* --- Grid Layout --- */
 .budget-grid {
     display: grid;
-    grid-template-columns: 300px 1fr;
-    /* Reduced width for narrower controls */
+    grid-template-columns: 340px 1fr;
+    /* Increased width for wider controls */
     gap: 30px;
     align-items: start;
     /* Prevent stretching, adhere to content height */
@@ -169,8 +179,8 @@
     font-size: 18px;
     font-weight: 600;
     color: #0f172a;
-    min-width: 140px;
-    /* Slight increase for larger text */
+    min-width: 180px;
+    /* Increased for longer month names */
     text-align: center;
 }
 
@@ -283,12 +293,19 @@
     background: #fff0f0;
     color: #ef4444;
     border: 1px solid #fecaca;
+    flex: 0.7;
+    /* Reduced width */
 }
 
 .btn-reset:hover {
     background: #fee2e2;
     color: #dc2626;
     border-color: #fca5a5;
+}
+
+.form-actions .btn-primary {
+    flex: 1.3;
+    /* Increased width */
 }
 
 /* --- Right Column: Budget List --- */

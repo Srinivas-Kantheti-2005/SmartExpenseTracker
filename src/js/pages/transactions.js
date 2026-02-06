@@ -99,6 +99,7 @@ console.log('Transactions.js loaded');
 
                 // Refresh category options to match the selected type
                 updateFilterCategoryOptions();
+                document.getElementById('filter-category').disabled = false;
             }
         }
 
@@ -204,7 +205,9 @@ console.log('Transactions.js loaded');
 
             activeCategoryFilter = "";
             activeItemFilter = "";
-            document.getElementById('filter-category').value = "";
+            const catEl = document.getElementById('filter-category');
+            catEl.value = "";
+
             document.getElementById('filter-item').value = "";
 
             updateFilterCategoryOptions();
@@ -217,6 +220,11 @@ console.log('Transactions.js loaded');
             activeItemFilter = "";
             document.getElementById('filter-item').value = "";
             updateFilterItemOptions(activeCategoryFilter, activeTypeFilters);
+
+            // Enable/disable item filter based on category selection
+            const itemSelect = document.getElementById('filter-item');
+            itemSelect.disabled = !activeCategoryFilter;
+
             renderTransactions();
         });
 
@@ -228,9 +236,12 @@ console.log('Transactions.js loaded');
         document.getElementById('clear-filters-btn').addEventListener('click', () => {
             document.getElementById('filter-type').value = 'all';
             activeTypeFilters = ['expense', 'income', 'investment'];
-            document.getElementById('filter-category').value = "";
+            const catEl = document.getElementById('filter-category');
+            catEl.value = "";
             activeCategoryFilter = "";
-            document.getElementById('filter-item').value = "";
+            const itemEl = document.getElementById('filter-item');
+            itemEl.value = "";
+            itemEl.disabled = true;
             activeItemFilter = "";
 
             updateFilterCategoryOptions();
@@ -262,19 +273,36 @@ console.log('Transactions.js loaded');
         document.getElementById('tx-type').value = 'expense';
         updateFormCategoryOptions('expense');
 
-        // Reset Date constraints/value
+        // Reset Date constraints/value and disable it
         updateFormDateConstraints();
+        const dateInput = document.getElementById('tx-date');
+        if (dateInput) {
+            if (dateInput._flatpickr) {
+                dateInput._flatpickr.input.disabled = true;
+                if (dateInput._flatpickr.altInput) dateInput._flatpickr.altInput.disabled = true;
+            } else {
+                dateInput.disabled = true;
+            }
+        }
     }
 
     function initFormDatePicker() {
         if (typeof flatpickr !== 'undefined') {
-            flatpickr("#tx-date", {
+            const dateInput = document.getElementById('tx-date');
+            flatpickr(dateInput, {
                 dateFormat: "Y-m-d",
                 altInput: true,
                 altFormat: "d/m/Y",
                 theme: "material_blue",
                 defaultDate: new Date()
             });
+            // Initially disable the date field until category is selected
+            if (dateInput._flatpickr) {
+                dateInput._flatpickr.input.disabled = true;
+                if (dateInput._flatpickr.altInput) dateInput._flatpickr.altInput.disabled = true;
+            } else {
+                dateInput.disabled = true;
+            }
         }
     }
 
@@ -369,10 +397,8 @@ console.log('Transactions.js loaded');
         itemSelect.innerHTML = '<option value="" disabled selected>Select Item</option>';
         itemSelect.disabled = true;
 
-        const typeId = getTypeId(logicalType);
-        if (!typeId) return;
-
-        const filteredCats = allCategories.filter(c => c.type_id == typeId || c.typeId == typeId);
+        // Filter categories by type string (not type_id)
+        const filteredCats = allCategories.filter(c => c.type === logicalType);
         filteredCats.forEach(cat => {
             const opt = document.createElement('option');
             opt.value = cat.id;
@@ -394,8 +420,30 @@ console.log('Transactions.js loaded');
 
     function updateFormItemOptions(categoryId) {
         const itemSelect = document.getElementById('tx-item');
+        const dateInput = document.getElementById('tx-date');
         itemSelect.innerHTML = '<option value="" disabled selected>Select Item</option>';
-        if (!categoryId) { itemSelect.disabled = true; return; }
+        if (!categoryId) {
+            itemSelect.disabled = true;
+            if (dateInput) {
+                if (dateInput._flatpickr) {
+                    dateInput._flatpickr.input.disabled = true;
+                    if (dateInput._flatpickr.altInput) dateInput._flatpickr.altInput.disabled = true;
+                } else {
+                    dateInput.disabled = true;
+                }
+            }
+            return;
+        }
+
+        // Enable date field when category is selected
+        if (dateInput) {
+            if (dateInput._flatpickr) {
+                dateInput._flatpickr.input.disabled = false;
+                if (dateInput._flatpickr.altInput) dateInput._flatpickr.altInput.disabled = false;
+            } else {
+                dateInput.disabled = false;
+            }
+        }
 
         const filteredItems = allItems.filter(i => i.category_id == categoryId || i.categoryId == categoryId);
         if (filteredItems.length === 0) {
@@ -423,9 +471,7 @@ console.log('Transactions.js loaded');
         const select = document.getElementById('filter-category');
         select.innerHTML = '<option value="">All Categories</option>';
         activeTypeFilters.forEach(type => {
-            const tId = getTypeId(type);
-            if (!tId) return;
-            const cats = allCategories.filter(c => c.type_id == tId || c.typeId == tId);
+            const cats = allCategories.filter(c => c.type === type);
             if (cats.length > 0) {
                 const group = document.createElement('optgroup');
                 group.label = type.charAt(0).toUpperCase() + type.slice(1);
@@ -444,23 +490,18 @@ console.log('Transactions.js loaded');
         const itemSelect = document.getElementById('filter-item');
         itemSelect.innerHTML = '<option value="">All Items</option>';
 
-        const isAllTypes = activeTypes.length > 1;
-        const hasCategory = !!selectedCategoryId;
-        if (isAllTypes && !hasCategory) { itemSelect.disabled = true; return; }
-
         let validCategoryIds = [];
         if (selectedCategoryId) {
             validCategoryIds = [selectedCategoryId.toString()];
         } else {
             const activeTypeIds = activeTypes.map(t => getTypeId(t)).filter(Boolean);
             validCategoryIds = allCategories
-                .filter(c => activeTypeIds.includes(String(c.type_id || c.typeId)))
+                .filter(c => activeTypeFilters.includes(c.type))
                 .map(c => c.id.toString());
         }
 
         const filteredItems = allItems.filter(i => validCategoryIds.includes(String(i.category_id || i.categoryId)));
-        if (filteredItems.length === 0) { itemSelect.disabled = true; return; }
-        itemSelect.disabled = false;
+        if (filteredItems.length === 0) { return; }
         filteredItems.sort((a, b) => a.name.localeCompare(b.name));
 
         const catMap = {};
@@ -520,8 +561,14 @@ console.log('Transactions.js loaded');
                 updateFormDateConstraints();
 
                 loadTransactions();
-            } else { alert('Failed to save'); }
-        } catch (error) { console.error('Error:', error); alert('Error saving transaction'); }
+            } else {
+                const errorData = await res.json();
+                alert(`Failed to save: ${errorData.error?.message || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert(`Error saving transaction: ${error.message}`);
+        }
     }
 
     async function saveInlineEdit(id) {
@@ -755,10 +802,7 @@ console.log('Transactions.js loaded');
 
     function populateInlineCategory(select, logicalType, selectedId) {
         select.innerHTML = '<option value="" disabled selected>Select</option>';
-        const typeId = getTypeId(logicalType);
-        if (!typeId) return;
-
-        const cats = allCategories.filter(c => c.type_id == typeId || c.typeId == typeId);
+        const cats = allCategories.filter(c => c.type === logicalType);
         cats.forEach(c => {
             const opt = document.createElement('option');
             opt.value = c.id;

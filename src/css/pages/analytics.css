@@ -2,6 +2,16 @@
    Analytics Page Styles
    ======================================== */
 
+html,
+body {
+    height: 100%;
+}
+
+body {
+    min-height: 100vh;
+}
+
+
 .analytics-page {
     padding: var(--spacing-lg);
 }

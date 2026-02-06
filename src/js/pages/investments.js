@@ -5,7 +5,7 @@ console.log('Investments.js loaded');
 
 (function () { // Start IIFE
 
-    const API_BASE = window.API_BASE_URL || 'http://localhost:5000/api';
+    const API_BASE = window.API_BASE_URL || 'http://localhost:5001/api';
 
     // State
     // State
@@ -83,6 +83,19 @@ console.log('Investments.js loaded');
                 altFormat: "d/m/Y", // e.g., 01/02/2026
                 theme: "material_blue"
             });
+            // Initially disable the date field until category is selected
+            if (dateInput._flatpickr) {
+                dateInput._flatpickr.input.disabled = true;
+                if (dateInput._flatpickr.altInput) dateInput._flatpickr.altInput.disabled = true;
+            } else {
+                dateInput.disabled = true;
+            }
+        }
+
+        // Also initially disable the item field
+        const itemSelect = document.getElementById('item-select');
+        if (itemSelect) {
+            itemSelect.disabled = true;
         }
 
         // 4. Load Data
@@ -202,58 +215,43 @@ console.log('Investments.js loaded');
 
     async function fetchCategories() {
         try {
-            // Helper to try paths
-            const fetchWithFallback = async (endpoint) => {
-                // Try /api/endpoint first
-                let url = `${API_BASE}/${endpoint}`;
-                let res = await fetch(url, { headers: getAuthHeaders() });
+            // Fetch categories from new API (includes subcategories nested)
+            const catRes = await fetch(`${API_BASE}/categories`, { headers: getAuthHeaders() });
+            const catData = await catRes.json();
 
-                // If 404, try root path (fallback for json-server default)
-                if (res.status === 404) {
-                    console.warn(`404 at ${url}, trying fallback to root...`);
-                    const fallbackUrl = url.replace('/api', '');
-                    res = await fetch(fallbackUrl, { headers: getAuthHeaders() });
-                }
-
-                if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-                return res.json();
-            };
-
-            // 1. Fetch Types
-            const typesData = await fetchWithFallback('types');
-            const types = Array.isArray(typesData) ? typesData : (typesData.data || []);
-
-            // Find "Investment" type ID
-            const investmentType = types.find(t => t.name.toLowerCase() === 'investments' || t.name.toLowerCase() === 'investment');
-            // If strictly "Investments" is used in DB, this will match. Logic supports "investment" too.
-            // CAUTION: Defaulting to 'type-3' (often expenses/others) if not found, but ideally should error.
-            // Let's assume there is an 'Investments' type in the DB.
-            const investmentTypeId = investmentType ? investmentType.id : null;
-
-            // 2. Fetch All Categories
-            const catData = await fetchWithFallback(`categories?email=${currentUser.email}`);
-            const categories = Array.isArray(catData) ? catData : (catData.data || []);
-
-            // 3. Filter for Investment Categories
-            if (investmentTypeId) {
-                allCategories = categories.filter(cat => {
-                    const tId = cat.typeId || cat.type_id;
-                    return tId == investmentTypeId;
-                });
-            } else {
-                console.warn("Investment type not found in DB. Showing no categories.");
-                allCategories = [];
+            if (!catData.success || !catData.data) {
+                throw new Error(catData.error?.message || 'Failed to load categories');
             }
 
+            // Transform API data to match expected format - filter only investment
+            allCategories = [];
+            allItems = [];
 
-            // 4. Fetch All Items
-            const itemsDataRaw = await fetchWithFallback(`items?email=${currentUser.email}`);
-            const itemsList = Array.isArray(itemsDataRaw) ? itemsDataRaw : (itemsDataRaw.data || []);
+            catData.data.forEach(cat => {
+                // Only investment categories
+                if (cat.type === 'investment') {
+                    allCategories.push({
+                        id: cat.id,
+                        name: cat.name,
+                        type: cat.type,
+                        icon: cat.icon,
+                        color: cat.color
+                    });
 
-            allItems = itemsList;
+                    // Subcategories (items)
+                    if (cat.subcategories && cat.subcategories.length > 0) {
+                        cat.subcategories.forEach(sub => {
+                            allItems.push({
+                                id: sub.id,
+                                name: sub.name,
+                                categoryId: cat.id
+                            });
+                        });
+                    }
+                }
+            });
 
-            console.log(`Loaded: ${allCategories.length} categories, ${allItems.length} items. Auth Type: ${investmentTypeId}`);
-            // Clear error if success
+            console.log(`Loaded: ${allCategories.length} investment categories, ${allItems.length} items`);
             window.catFetchError = null;
 
         } catch (error) {
@@ -307,13 +305,38 @@ console.log('Investments.js loaded');
 
     function populateItemSelect(categoryId) {
         const itemSelect = document.getElementById('item-select');
+        const dateInput = document.getElementById('investment-date');
         if (!itemSelect) return;
+
+        const itemGroup = itemSelect.closest('.form-group');
+        const dateGroup = dateInput ? dateInput.closest('.form-group') : null;
 
         itemSelect.innerHTML = '<option value="" disabled selected>Select Item</option>';
 
         if (!categoryId) {
             itemSelect.disabled = true;
+
+            if (dateInput) {
+                if (dateInput._flatpickr) {
+                    dateInput._flatpickr.input.disabled = true;
+                    if (dateInput._flatpickr.altInput) dateInput._flatpickr.altInput.disabled = true;
+                } else {
+                    dateInput.disabled = true;
+                }
+            }
             return;
+        }
+
+        // Enable fields when category is selected
+        itemSelect.disabled = false;
+
+        if (dateInput) {
+            if (dateInput._flatpickr) {
+                dateInput._flatpickr.input.disabled = false;
+                if (dateInput._flatpickr.altInput) dateInput._flatpickr.altInput.disabled = false;
+            } else {
+                dateInput.disabled = false;
+            }
         }
 
         // Filter items for this category
@@ -685,16 +708,20 @@ console.log('Investments.js loaded');
             itemSelect.innerHTML = '<option value="" disabled selected>Select Item</option>';
         }
 
+        const dateInput = document.getElementById('investment-date');
+        if (dateInput) {
+            if (dateInput._flatpickr) {
+                dateInput._flatpickr.setDate(new Date());
+                dateInput._flatpickr.input.disabled = true;
+                if (dateInput._flatpickr.altInput) dateInput._flatpickr.altInput.disabled = true;
+            } else {
+                dateInput.valueAsDate = new Date();
+                dateInput.disabled = true;
+            }
+        }
+
         document.getElementById('investment-amount').value = "";
         document.getElementById('investment-note').value = "";
-
-        // Reset date to today using Flatpickr
-        const dateInput = document.getElementById('investment-date');
-        if (dateInput && dateInput._flatpickr) {
-            dateInput._flatpickr.setDate(new Date());
-        } else if (dateInput) {
-            dateInput.valueAsDate = new Date();
-        }
     }
 
 })();

@@ -61,7 +61,7 @@ CREATE TABLE categories (
     id VARCHAR(36) PRIMARY KEY,
     user_id VARCHAR(36),
     name VARCHAR(100) NOT NULL,
-    type VARCHAR(20) NOT NULL CHECK (type IN ('income', 'expense')),
+    type VARCHAR(20) NOT NULL CHECK (type IN ('income', 'expense', 'investment')),
     icon VARCHAR(10),
     color VARCHAR(20),
     is_default BOOLEAN DEFAULT FALSE,
